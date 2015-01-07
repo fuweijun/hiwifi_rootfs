@@ -171,7 +171,7 @@
 			</tr>
 			<tr class="wifi_other">
 				<td class="t1"><b>无线信道</b></td>
-				<td><span id="wifi_channel">获取中...</span></td>
+				<td><span id="wifi_channel_1">获取中...</span></td>
 			</tr>
 			</table>
 			</fieldset>
@@ -261,16 +261,16 @@ $(function(){
 			{ 
 				if (rsp.channel){
 					if(rsp.channel == "" || rsp.channel == "0"){
-						$("#wifi_channel").html(rsp.channel_autoreal+"（自动选择）");
+						$("#wifi_channel_1").html(rsp.channel_autoreal+"（自动选择）");
 					} else {
-						$("#wifi_channel").html(rsp.channel+"（手动选择）");
+						$("#wifi_channel_1").html(rsp.channel+"（手动选择）");
 					}
 				}else{
-					$("#wifi_channel").html("获取失败");
+					$("#wifi_channel_1").html("获取失败");
 				}
 			});
 		}else{
-			$("#wifi_channel").html(""+wifi_channel+"（手动选择）");
+			$("#wifi_channel_1").html(""+wifi_channel+"（手动选择）");
 		}
 	}else{
 		$("#wifi_status").html("<span style='color:red'>已关闭</span>");

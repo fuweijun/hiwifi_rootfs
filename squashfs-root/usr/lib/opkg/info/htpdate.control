@@ -2,7 +2,7 @@ Package: htpdate
 Version: 1.0.5-20140120-b707e2f104cf9dbd9d8392285e125db67f17f4f0-20140715
 Depends: libc, libbdinfo
 Provides: 
-Source: /home/build/hiwifi/branch/release0.9005/HC5661/package/htpdate
+Source: /ROOT/diskb/hiwifi/branch/release0.9007/HC5661/package/htpdate
 Section: net
 Status: unknown ok not-installed
 Essential: no

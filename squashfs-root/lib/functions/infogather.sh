@@ -38,7 +38,7 @@ infogather_processes_info()
 	top -n 1
 }
 
-hi_diagnose()
+infogather_diagnose()
 {
 	echo "Current time:`date`"
 
@@ -159,23 +159,23 @@ infogather_sys_info()
 
 	dmesg &> $sysinfo_path/dmesg.log
 
-	hi_host_info &> $sysinfo_path/host.info
+	infogather_host_info &> $sysinfo_path/host.info
 
-	hi_user_info &> $sysinfo_path/user.info
+	infogather_user_info &> $sysinfo_path/user.info
 
-	hi_net_info &> $sysinfo_path/net.info
+	infogather_net_info &> $sysinfo_path/net.info
 
-	hi_disk_info &> $sysinfo_path/disk.info
+	infogather_disk_info &> $sysinfo_path/disk.info
 
-	hi_board_info &> $sysinfo_path/board.info
+	infogather_board_info &> $sysinfo_path/board.info
 
-	hi_cpu_info &> $sysinfo_path/cpu.info
+	infogather_cpu_info &> $sysinfo_path/cpu.info
 
-	hi_mem_info &> $sysinfo_path/mem.info
+	infogather_mem_info &> $sysinfo_path/mem.info
 
-	hi_processes_info &> $sysinfo_path/processes.info
+	infogather_processes_info &> $sysinfo_path/processes.info
 
-	hi_diagnose &> $sysinfo_path/diagnose.info
+	infogather_diagnose &> $sysinfo_path/diagnose.info
 
 	return 0
 }

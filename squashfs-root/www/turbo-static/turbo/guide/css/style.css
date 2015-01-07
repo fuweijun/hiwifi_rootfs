@@ -163,6 +163,7 @@ input.input-success {border:1px solid #000000}
 .dk_fouc select {display: none;}
 #dk_options_s2 .dk_options_inner { overflow: auto;}
 .text-wrap {overflow: hidden;display: block;font-style: normal;line-height: 40px;height: 40px;word-break: break-all;}
+.text-break {overflow: hidden;display: block;font-style: normal;word-break: break-all;}
 
 /* WiFi信号 */
 .wifi{ display: block; width: 20px; height: 40px; background-image: url(../images/wifi_rssi4.png);background-repeat: no-repeat; background-size: 20px auto; text-indent: -9999px; overflow: hidden; right: 2.5em;}

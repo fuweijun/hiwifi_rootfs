@@ -1,5 +1,5 @@
 <%
-local type = luci.http.formvalue("type")
+local type = luci.http.formvalue_htmlencode("type")
 local log_path = ""
 if type == "mentohust" then
 	log_path = "/tmp/mentohust.log"

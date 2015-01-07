@@ -9,5 +9,5 @@ Essential: no
 Priority: optional
 Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
 Architecture: ralink
-Installed-Size: 78954
+Installed-Size: 78832
 Description:  A small SSH2 server/client designed for small memory environments.

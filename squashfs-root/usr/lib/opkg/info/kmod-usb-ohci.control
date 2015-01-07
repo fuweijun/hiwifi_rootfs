@@ -9,5 +9,5 @@ Essential: no
 Priority: optional
 Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
 Architecture: ralink
-Installed-Size: 12543
+Installed-Size: 12540
 Description:  Kernel support for USB OHCI controllers

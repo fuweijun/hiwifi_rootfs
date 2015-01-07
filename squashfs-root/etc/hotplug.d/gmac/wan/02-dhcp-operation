@@ -2,14 +2,18 @@
 
 stop()
 {
-	if [ "dhcp" = "$(uci get network.wan.proto)" ];then
-		kill -USR2 $(pidof udhcpc)
+	if [ "$TYPE" -ne "0" ];then
+		if [ "dhcp" = "$(uci get network.wan.proto)" ];then
+			kill -USR2 $(pidof udhcpc)
+		fi
 	fi
 }
 
 start()
 {
-	if [ "dhcp" = "$(uci get network.wan.proto)" ];then
-	        kill -USR1 $(pidof udhcpc)
+	if [ "$TYPE" -ne "0" ];then
+		if [ "dhcp" = "$(uci get network.wan.proto)" ];then
+			kill -USR1 $(pidof udhcpc)
+		fi
 	fi
 }

@@ -66,6 +66,10 @@ stop() {
     return 0
 }
 
+restart() {
+	stop
+	start
+}
 
 firewall_add () {
     idx=$(uci show firewall|grep -w @zone|grep -E "name=${WANIF}$"|cut -d= -f1|grep -oE "[0-9]+")

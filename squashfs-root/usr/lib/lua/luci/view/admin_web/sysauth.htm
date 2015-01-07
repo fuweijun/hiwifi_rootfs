@@ -8,20 +8,20 @@
 	local util = require "luci.util"
 	local http = require "luci.http"
 
-	local urlbackReq = util.fliter_unsafe(http.formvalue("urlback")	)
-	local fromsite = http.formvalue("fromsite")
+	local urlbackReq = http.formvalue_htmlencode("urlback")
+	local fromsite = http.formvalue_htmlencode("fromsite")
 	
 	-- clinet_bind = 1 表示手机客户端请求
 	-- clinet_token 为手机客户端 token 存到 "/tmp/"
-	local clinet_bind = http.formvalue("clinet_bind")
-	local clinet_token = http.formvalue("token") or ""
+	local clinet_bind = http.formvalue_htmlencode("clinet_bind")
+	local clinet_token = http.formvalue_htmlencode("token") or ""
 
 	-- token 写入临时文件
 	clinet_token = util.shell_safe_str(clinet_token)
 	os.execute("echo '"..clinet_token.."' > /tmp/clinet_token")	
 	
 	if urlbackReq == nil or urlbackReq==""  then
-		urlbackReq = http.getenv("HTTP_REFERER")
+		urlbackReq = http.getenv_htmlencode("HTTP_REFERER")
 	end
 	local tw = require "tw"
 	local ver  = require "luci.version"
@@ -123,7 +123,7 @@ http.write(util.inc_html_header_end())
         <span id="sd_icon" class="icon-i-y"></span><span id="sd_info"></span>
     </div>
 	<a href="<%=luci.i18n.translate("key_company_site")%>" target="_blank" class="gobtn">去 官 网</a>
-	<form id="loginform" name="loginform" method="post" action="<%=pcdata(http.getenv("REQUEST_URI"))%>" onsubmit="return check_form(this);"> 
+	<form id="loginform" name="loginform" method="post" action="<%=pcdata(http.getenv_htmlencode("REQUEST_URI"))%>" onsubmit="return check_form(this);"> 
 	<% if not luci.util.is_loginlock() then %>
 		<input autocomplete="off"  type="hidden" name="username" value="admin" />
 		<label>路由器密码</label><input autocomplete="off" class="txt <%- if fuser then %> error<% end -%>" type="<% if showpassword_ln ~= '0' then %>text<% else %>password<% end %>" name="password" id="input_password1" <% if showpassword_ln ~= '0' then %>value="<%=luci.version.default_password%>"<% end %>/>
@@ -159,7 +159,7 @@ http.write(util.inc_html_header_end())
 		</p>
 	<% end %>
 	</form>
-	<div id="weixin_img"><img src="<%=resource%>/web/images/weixin.jpg" /></div>
+	<div id="weixin_img"><img src="<%=resource%>/web/images/weixin1.jpg" /></div>
 </div> 
 <%
 if util.replace_html_footer() then
@@ -230,7 +230,7 @@ var sys_board = '<%=sys_board%>';
 					"<%=resource%>/web/js/share_content.js?v=<%=ver.svnRevNum%>",
 					"<%=resource%>/web/js/artDialog/plugins/iframeTools.source.js?v=<%=ver.svnRevNum%>",
 					
-					"<%=resource%>/web/images/weixin.jpg",
+					"<%=resource%>/web/images/weixin1.jpg",
 					
 					"<%=resource%>/web/images/addmac.png",
 					"<%=resource%>/web/images/alert.png",
@@ -410,6 +410,11 @@ var sys_board = '<%=sys_board%>';
                                 sd_error = true;
                             }
                         }, 120000);
+                    }else if(state == "lock"){
+                        $(".sd-tip-bar").removeClass("yellow");
+                        $("#sd_info").html("扩展存储为只读模式");
+                        $("#sd_icon").addClass("icon-i").removeClass("icon-i-y");
+                        $(".sd-tip-bar").show();
                     }
                 }
                 setTimeout("get_sata_state()", 5000);

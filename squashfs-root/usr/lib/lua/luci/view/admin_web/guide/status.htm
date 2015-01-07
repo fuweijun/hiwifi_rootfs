@@ -30,8 +30,19 @@ local guide_open_app = luci.util.exec("cat /tmp/guide_open_app 2>/dev/null")
             <div class="success-title">请连接无线网络：</div>
             <div class="success-info-box">
                 <div><p id="alert"></p></div>
-                <div><span>无线名称：</span><span id="wifi_ssid">加载中...</span></div>
-                <div><span>无线密码：</span><span id="wifi_key">加载中...</span></div>
+                <table>
+                    <col width="100"/>
+                    <col width="*"/>
+                    <tr>
+                        <th>无线名称：</th>
+                        <td><span id="wifi_ssid">加载中...</span></td>
+                    </tr>
+                    <tr>
+                        <th>无线密码：</th>
+                        <td><div class="text-break"><span id="wifi_key">加载中...</span></div></td>
+                    </tr>
+
+                </table>
             </div>
             <p id="check_msg" class="error-info"></p>
             <p id="wifi_restart_view" class="g9" style="display:none;">
@@ -55,7 +66,8 @@ $(window).load(function() {
 });
 
 function to_download(){
-    window.location = "http://www.hiwifi.com/download/all/";
+    window.location = 'http://www.hiwifi.com/twxredirect/?type=guide&mac=<%http.write(tw.get_mac())%>';
+    return false;
 }
 
 var active_point_interval;

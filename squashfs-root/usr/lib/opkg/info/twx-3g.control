@@ -1,8 +1,8 @@
 Package: twx-3g
-Version: 2130-20140821
+Version: 2130
 Depends: libc, twx
 Provides: 
-Source: /home/build/hiwifi/branch/release0.9005/HC5661/package/twx
+Source: /ROOT/diskb/hiwifi/branch/release0.9007/HC5661/package/twx
 Section: net
 Status: unknown ok not-installed
 Essential: no

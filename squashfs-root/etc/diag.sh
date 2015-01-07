@@ -36,6 +36,21 @@ get_status_led() {
 	esac
 }
 
+switch_leds() {
+	# old api
+	if [ -e /etc/config/led_disable ]; then
+		uci set hiwifi.led.state=0
+		uci commit hiwifi
+		rm -f /etc/config/led_disable
+	fi
+
+	led_state=$(uci get hiwifi.led.state)
+
+	if [ $led_state -eq 0 ]; then
+		setled all off
+	fi
+}
+
 set_state() {
 	get_status_led
 
@@ -51,6 +66,7 @@ set_state() {
 		;;
 	done)
 		status_led_set_timer 1000 1000
+		switch_leds
 		;;
 	esac
 }

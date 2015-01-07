@@ -9,5 +9,5 @@ Essential: no
 Priority: optional
 Maintainer: Felix Fietkau <nbd@openwrt.org>
 Architecture: ralink
-Installed-Size: 32191
+Installed-Size: 32169
 Description:  uClibc RPC library

@@ -23,7 +23,7 @@ if wan_if == IFNAME then
 end	
 
 local adv_menu = luci.util.get_adv_menu()
-local request_uri = luci.http.getenv("REQUEST_URI")
+local request_uri = luci.http.getenv_htmlencode("REQUEST_URI")
 %>
 <!DOCTYPE html>
 <html>
@@ -53,7 +53,7 @@ local request_uri = luci.http.getenv("REQUEST_URI")
 	<h2>高级设置<i>设置路由器安全 , 及其他高级设置</i></h2>
 </div>
 <div class="menu">
-	<% luci.util.output_adv_menu() %>
+	<% include("admin_web/menu/adv_menu") %>
 </div>
 
 <div class="box setup_box">

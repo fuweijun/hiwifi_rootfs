@@ -1,13 +1,13 @@
 Package: shadowsocks
-Version: master-20130924-eb9d31869e1d7590cd8c2fb1e7d226ac6cf32fad-20140618
+Version: master-20130924-eb9d31869e1d7590cd8c2fb1e7d226ac6cf32fad-20141028
 Depends: libc, libopenssl, libauth, libqos, libtw, libhwf-log
 Provides: 
-Source: /home/build/hiwifi/branch/release0.9005/HC5661/package/shadowsocks
+Source: /ROOT/diskb/hiwifi/branch/release0.9007/HC5661/package/shadowsocks
 Section: net
 Status: unknown ok not-installed
 Essential: no
 Priority: optional
 Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
 Architecture: ralink
-Installed-Size: 34927
+Installed-Size: 34960
 Description:  Socks5 solution for VPN

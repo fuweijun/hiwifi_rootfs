@@ -39,14 +39,17 @@ local is_internet_connect = luci.util.is_internet_connect()
 $(window).load(function() {
     $("#download_app").click(function(){
         to_download();
+        return false;
     });
     $("#download_view").click(function(){
         to_download();
+        return false;
     });
 });
 
 function to_download(){
     window.location = "http://www.hiwifi.com/download/all";
+    return false;
 }
 </script>
 </html>

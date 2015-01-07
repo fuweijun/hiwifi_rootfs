@@ -1,6 +1,6 @@
 Package: busybox
-Version: 1.19.4-20140814
-Depends: libc, librpc, libbdinfo
+Version: 1.19.4-20141009
+Depends: libc, librpc
 Provides: 
 Source: package/busybox
 Section: base
@@ -9,6 +9,6 @@ Essential: yes
 Priority: optional
 Maintainer: Nicolas Thill <nico@openwrt.org>
 Architecture: ralink
-Installed-Size: 249176
+Installed-Size: 244483
 Description:  The Swiss Army Knife of embedded Linux.
  It slices, it dices, it makes Julian Fries.

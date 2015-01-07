@@ -9,5 +9,5 @@ Essential: no
 Priority: optional
 Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
 Architecture: ralink
-Installed-Size: 18882
+Installed-Size: 18905
 Description:  Utilities to check exfat filesystem.

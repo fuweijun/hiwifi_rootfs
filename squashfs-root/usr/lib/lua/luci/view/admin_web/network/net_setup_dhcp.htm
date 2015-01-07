@@ -7,7 +7,7 @@
 
 local ver  = require "luci.version"
 local adv_menu = luci.util.get_adv_menu()
-local request_uri = luci.http.getenv("REQUEST_URI")
+local request_uri = luci.http.getenv_htmlencode("REQUEST_URI")
 
 
 local bind_ipReq={}
@@ -39,6 +39,7 @@ end
 <script type="text/javascript" src="<%=resource%>/web/js/artDialog/jquery.artDialog.js?skin=blueskin"></script>
 <script type="text/javascript" src="<%=resource%>/web/js/artDialog/plugins/iframeTools.source.js?v=<%=ver.svnRevNum%>"></script>
 <script type="text/javascript" src="<%=resource%>/validators.min.js?v=<%=ver.svnRevNum%>"></script>
+<script src="<%=resource%>/web/js/util.js?v=<%=ver.svnRevNum%>"></script>
 </head>
 
 <style type="text/css">
@@ -53,7 +54,7 @@ end
     <h2>高级设置<i>设置路由器安全 , 及其他高级设置</i></h2>
 </div>
 <div class="menu">
-    <% luci.util.output_adv_menu() %>
+    <% include("admin_web/menu/adv_menu") %>
 </div>
 
 <div class="box setup_box">
@@ -66,6 +67,8 @@ end
             <%
             local net = require "hiwifi.net"
             local devicesResp = net.get_dhcp_client_list()
+            local device_names = require "hiwifi.device_names"
+            local device_name_all = device_names.get_all() or {}
             %>
             <div style="padding:10px 0 10px 0;display:none;" id="dhcp_list_box">
                 <h4 style="font-size:14px;font-weight:400; margin-bottom:10px;">DHCP 设备列表:</h4>
@@ -77,11 +80,16 @@ end
                     </tr>
                     <%
                     for i,v in ipairs(devicesResp) do
+                        table.foreach(device_name_all, function(mac_one, re_name)
+                          if string.upper(v['mac'] or "") == string.upper(mac_one) then
+                              v['name'] = re_name
+                          end
+                        end)
                     %>
                     <tr align="center">
                         <td><%=v['ip']%></td>
                         <td><%=string.upper(v['mac'] or "")%></td>
-                        <td align="center" id="mac_<%=string.gsub(v['mac'],":","")%>_box"><%if v['name']=="" then luci.http.write("未知") else luci.http.write(v['name']) end%></td>
+                        <td align="center" id="mac_<%=string.gsub(v['mac'],":","")%>_box"><span class="device_name_span"><%if v['name']=="" then luci.http.write("未知") else luci.http.write(v['name']) end%></span><span class="device_change_name_span">&nbsp; <a href="javascript:void(0)" class="to_devices_list" style="cursor: pointer;" >改名<input type="hidden" class="mac" value="<%=v['mac']%>"></input></a></span></td>
                     </tr>
                     <%
                     end
@@ -144,6 +152,14 @@ end
 </div>
 <script type="text/javascript">
 $(function(){
+    var devicesCache = {}
+    <%
+    for i,v in ipairs(devicesResp) do
+    %>
+    devicesCache['<%=v["mac"] or ""%>'] = '<%=v['name'] or ""%>'
+    <%
+    end
+    %>
     function ipBox(ip){
         var ip_split="";
         var strs = ip.split("."); //字符分割      
@@ -277,7 +293,7 @@ $(function(){
     //动态对dhcp表中的设备是wifi连接的进行标示
     function check_wifi_drivers(){
         var request_date = {"device":"radio0.network1"}; 
-        var wifi_icon = "<span><img src=\"<%=resource%>/web/images/signal4.png\"></span>"
+        var wifi_icon = "<span class=\"device_type_ico_span\"><img src=\"<%=resource%>/web/images/signal4.png\" /></span>"
         $.getJSON("<%=luci.dispatcher.build_url("api", "wifi","get_connected_devices_list")%>",request_date,function(rsp) 
         { 
             var d_mac;
@@ -287,7 +303,7 @@ $(function(){
                     d_mac = device_list[i].mac;
                     var mac_id = $("#mac_"+d_mac.replace(/:/g,'')+"_box");
                     if(mac_id){
-                        mac_id.html(mac_id.html()+wifi_icon);
+                        $(mac_id).prepend(wifi_icon)
                     }
                 }
             }
@@ -306,6 +322,58 @@ $(function(){
     })
 
     check_wifi_drivers();
+    
+    function set_device_name(mac, name, success_callback){
+        //network/set_device_name 
+        name = removeHtmlTag(name);
+        var request_date = {"name":name,"mac":mac}; 
+        $.post("<%=luci.dispatcher.build_url("api", "network","set_device_name")%>",request_date,function(rsp) 
+        {
+            if(rsp.code==0){
+                if(typeof(success_callback) == "function"){
+                    success_callback(mac, name)
+                }
+            } else {
+                art.dialog({icon:"error",title:false,content:rsp.msg}).lock().time(1.5);
+            }
+        }, "json")
+    }
+
+    $(".to_devices_list").click(function(){
+        $(".name_cancel").trigger("click")
+        var mac = $(this).find('.mac').val()
+        var mac_now = mac
+        var name_now = devicesCache[mac]
+        var edit_name_html = '<div id="edit_from"><input name="name_new" type="text" value="'+name_now+'" style="width:80px;">&nbsp<input name="name_mac" type="hidden" value="'+mac_now+'">'+
+            '<img style="display:none;" id="loading2" src="<%=resource%>/web/js/artDialog/skins/icons/loading.gif" alt="HiWiFi 路由器" />'+
+            '<input type="button" class="name_sub btn_s" value="提交">&nbsp<input type="button" class="name_cancel btn_s" value="取消"></div>';
+        var this_area = $(this).parent().parent()
+        $(this_area).find(".device_name_span").hide()
+        $(this_area).find(".device_change_name_span").hide()
+        $(this_area).find(".device_type_ico_span").hide()
+        $(this_area).append(edit_name_html)
+        
+        $("input[name='name_new']").focus();
+        $(".name_sub").click(function(){
+            var name = $(this).parent().find("input[name='name_new']").val();
+            var mac = $(this).parent().find("input[name='name_mac']").val();
+            $("#loading2").show();
+            set_device_name(mac, name, function(mac, new_name){
+                $("#edit_from").remove();
+                devicesCache[mac] = new_name
+                $(this_area).find(".device_name_span").html(devicesCache[mac])
+                $(this_area).find(".device_name_span").show()
+                $(this_area).find(".device_change_name_span").show()
+                $(this_area).find(".device_type_ico_span").show()
+            });
+        })
+        $(".name_cancel").click(function(){
+            $("#edit_from").remove();
+            $(this_area).find(".device_name_span").show()
+            $(this_area).find(".device_change_name_span").show()
+            $(this_area).find(".device_type_ico_span").show()
+        })
+    })
 });
 </script>
 </body>

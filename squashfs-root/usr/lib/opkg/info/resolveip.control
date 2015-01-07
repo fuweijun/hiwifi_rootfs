@@ -9,7 +9,7 @@ Essential: no
 Priority: optional
 Maintainer: Jo-Philipp Wich <jow@openwrt.org>
 Architecture: ralink
-Installed-Size: 1773
+Installed-Size: 1789
 Description:  This package contains the small resolveip utility which
  can be used by scripts to turn host names into numeric
  IP addresses. It supports IPv4 and IPv6 resolving and

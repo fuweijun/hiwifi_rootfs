@@ -8,7 +8,7 @@ SERVICE_WRITE_PID=1
 
 start() {
 	stop
-	service_start /usr/sbin/hcshd
+	[ ! -e /lib/upgrade/keep.d/stop_hcshd ] && service_start /usr/sbin/hcshd
 }
 
 stop() {

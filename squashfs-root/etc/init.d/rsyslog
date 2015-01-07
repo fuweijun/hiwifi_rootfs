@@ -1,0 +1,43 @@
+#!/bin/sh /etc/rc.common
+# Copyright (C) 2006-2011 OpenWrt.org
+
+START=02
+
+SERVICE_USE_PID=1
+
+start() {
+	[ -f /etc/rsyslog.conf ] || return 1
+
+	[ -f "/lib/platform.sh" ] && {
+		. /lib/platform.sh
+		tw_server_addr=$(tw_get_mac)
+		if [ "$tw_server_addr" != "" ] ; then
+			sed -i "s/TurboWireless/${tw_server_addr}/g" /etc/rsyslog.conf
+		fi
+		/bin/ls /etc/rsyslog.d/*.conf &> /dev/null
+		if [ $? -eq 0 ]; then
+			sed -i "s/TurboWireless/${tw_server_addr}/g" /etc/rsyslog.d/*.conf
+		fi
+	}
+
+	[ -f /etc/rsyslog.conf ] || return 1
+	service_start /usr/sbin/rsyslogd -f /etc/rsyslog.conf -i /var/run/rsyslog.pid
+}
+
+stop() {
+	for i in 1 2 3 4 5; do
+		killall rsyslogd 2>/dev/null || break
+		sleep 1
+	done
+	killall -9 rsyslogd 2>/dev/null
+}
+
+reload() {
+	killall -HUP rsyslogd
+}
+
+restart() {
+	stop
+	sleep 1
+	start
+}

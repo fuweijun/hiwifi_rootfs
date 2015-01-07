@@ -1,5 +1,5 @@
 Package: libiptc
-Version: 1.4.10-4
+Version: 1.4.10-20140924
 Depends: libc, libip4tc, libip6tc
 Provides: 
 Source: package/network/utils/iptables
@@ -9,5 +9,5 @@ Essential: no
 Priority: optional
 Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
 Architecture: ralink
-Installed-Size: 1039
+Installed-Size: 1027
 Description:  IPv4/IPv6 firewall - shared libiptc library (compatibility stub)

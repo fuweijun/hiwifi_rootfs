@@ -32,13 +32,6 @@ blink_led_with_num() {
 	esac
 }
 
-do_conf_backup() {
-	mtdpart="$(find_mtd_part hwf_config)"
-	[ -z "$mtdpart" ] && return 1
-	mtd -q erase hwf_config
-	mtd -q write "$1" hwf_config
-}
-
 do_upgrade_bootloader() {
 	local loop_min=1
 	local loop_max=5
@@ -56,21 +49,20 @@ do_upgrade_bootloader() {
 
 platform_do_upgrade_hiwifi() {
 	local board=$(tw_board_name)
-	local pci_devices=$(cat /proc/bus/pci/devices | wc -l)
 	local upgrade_boot=0
 	sync
 
 	case "$board" in
-	HC5761 | HC5861 | HB5881)
+	HC5761 | HC5861 | HB5881 | ZC-9526 | HC5762)
 		blink_led_with_num 4
 		;;
-	HC5661 | HC5663 | BL-855R)
+	HC5661 | HC5663 | BL-855R | ZC-9525)
 		blink_led_with_num 3
 		;;
-	HB5981m | HC5641 | BL-H750AC)
+	HB5981m | HC5641 | BL-H750AC | BL-T8100)
 		blink_led_with_num 2
 		;;
-	HB5981s | HB5811)
+	HB5981s | HB5811 | ZC-9527)
 		blink_led_with_num 1
 		;;
 	esac
@@ -84,12 +76,10 @@ platform_do_upgrade_hiwifi() {
 		fi
 	fi
 
-	echo "begin write flash in sysupgrade" >>$SYSUPGRADE_LOG
-	echo "+++++++MEMINFO+++++++++++++++++" >>$SYSUPGRADE_LOG
-	cat /proc/meminfo >>$SYSUPGRADE_LOG
+	sysupgrade_log "start write flash"
+	sysupgrade_log "memory"
 
 	if [ "$SAVE_CONFIG" -eq 1 -a -z "$USE_REFRESH" ]; then
-		do_conf_backup "$CONF_TAR"
 		if [ -f /tmp/img_has_boot ]; then
 			if [ $upgrade_boot -eq 1 ]; then
 				do_upgrade_bootloader "$1"
@@ -108,6 +98,6 @@ platform_do_upgrade_hiwifi() {
 			get_image "$1" | mtd -q -l write - "${PART_NAME:-image}"
 		fi
 	fi
-	echo "--------mtd return val $?--------" >>$SYSUPGRADE_LOG
-	echo "end write flash in sysupgrade" >>$SYSUPGRADE_LOG
+	sysupgrade_log "mtd return val $?"
+	sysupgrade_log "end write flash"
 }

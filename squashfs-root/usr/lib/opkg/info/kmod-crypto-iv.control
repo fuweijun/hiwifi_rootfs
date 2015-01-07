@@ -9,5 +9,5 @@ Essential: no
 Priority: optional
 Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
 Architecture: ralink
-Installed-Size: 3907
+Installed-Size: 3909
 Description:  CryptoAPI initialization vectors

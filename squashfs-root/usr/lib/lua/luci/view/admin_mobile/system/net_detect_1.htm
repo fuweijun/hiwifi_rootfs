@@ -8,9 +8,9 @@
 local ver  = require "luci.version"
 local return_domain_name
 local return_url_ips
-local urlReq = luci.util.fliter_unsafe(luci.http.formvalue("url"))
-local typeReq = luci.util.fliter_unsafe(luci.http.formvalue("type"))
-local debugReq = luci.util.fliter_unsafe(luci.http.formvalue("debug"))
+local urlReq = luci.http.formvalue_htmlencode("url")
+local typeReq = luci.http.formvalue_htmlencode("type")
+local debugReq = luci.http.formvalue_htmlencode("debug")
 if urlReq==nil then
 	urlReq = ""
 end
@@ -232,7 +232,7 @@ function init_back_url(){
 
 function init_mac_local(){
     <%
-    local remote_addr = luci.http.getenv("REMOTE_ADDR") 
+    local remote_addr = luci.http.getenv_htmlencode("REMOTE_ADDR") 
     local mac = luci.sys.net.ip4mac(remote_addr) or ""
     %>
     remote_addr = '<%=remote_addr%>';

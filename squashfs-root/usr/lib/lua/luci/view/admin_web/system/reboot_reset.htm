@@ -7,7 +7,7 @@
 
 local ver  = require "luci.version"
 local adv_menu = luci.util.get_adv_menu()
-local request_uri = luci.http.getenv("REQUEST_URI")
+local request_uri = luci.http.getenv_htmlencode("REQUEST_URI")
 %>
 <!DOCTYPE html>
 <html>
@@ -25,21 +25,53 @@ local request_uri = luci.http.getenv("REQUEST_URI")
 	<h2>高级设置<i>设置路由器安全 , 及其他高级设置</i></h2>
 </div>
 <div class="menu">
-	<% luci.util.output_adv_menu() %>
+	<% include("admin_web/menu/adv_menu") %>
 </div>
 
 <div class="box setup_box">
 	<div style="text-align:center;">
 		<br><br>
 		<input type="button" value="恢复出厂设置" class="btn" id="reset_btn">
+		<p id="format_disk_area" style="padding-left:42px; margin-top: 10px; display:none">
+    		<input name="format_disk" type="checkbox" id="format_disk" value="1" style="cursor: pointer;">
+    		<label for="format_disk" style="cursor: pointer;"><%:同时格式化存储空间（SD卡或SATA硬盘）%></label>
+        </p>
 	</div>
 </div>
 <script type="text/javascript">
 $(function(){	
 	$("#reset_btn").click(function(){
-		window.parent.reset_window();
-		//window.parent.art.dialog.list['func_box'].close();
+	   var format_disk;
+	   if($("#format_disk").attr("checked") == "checked"){
+          format_disk = $("#format_disk").val();
+       }
+       window.parent.reset_window(format_disk);
 	})
+	
+	function get_storage_state(){
+        var myDate = new Date();
+        var mill = myDate.getTime();
+        var request_data = {};
+        $.getJSON('<%=luci.dispatcher.build_url("api", "storage", "state")%>?'+mill,request_data,function(rsp) 
+        { 
+            var code = rsp.code;
+            if(code == 0 || code == "0"){
+                if(rsp.data){
+                    var type = rsp.data.type;
+                    if(type != 'NULL'){
+                        $("#format_disk_area").show();
+                    }else{
+                        $("#format_disk_area").hide();
+                    }
+                }
+            }
+        })
+        .fail(function(rsp){
+            setTimeout("get_storage_state()", 10000);
+        });
+    }
+    
+    get_storage_state();
 })
 
 </script>

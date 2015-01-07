@@ -2,14 +2,14 @@ Package: logrotate
 Version: 3.8.1-1
 Depends: libc, libpopt
 Provides: 
-Source: /home/build/hiwifi/branch/release0.9005/HC5661/feeds/logrotate
+Source: /ROOT/diskb/hiwifi/branch/release0.9007/HC5661/feeds/logrotate
 Section: utils
 Status: unknown ok not-installed
 Essential: no
 Priority: optional
 Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
 Architecture: ralink
-Installed-Size: 19859
+Installed-Size: 19752
 Description:  logrotate is designed to ease administration of systems that generate large
  numbers of log files. It allows auto-matic rotation, compression, removal and
  mailing of log files. Each log file may be handled daily, weekly, monthly or

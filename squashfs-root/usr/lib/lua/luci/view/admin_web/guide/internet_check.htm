@@ -3,7 +3,7 @@ local util  = require "luci.util"
 local http = require "luci.http"
 local n = require "luci.controller.api.network"
 local check_backup = "0"
-local check_backup_file = http.formvalue("check_backup_file")
+local check_backup_file = http.formvalue_htmlencode("check_backup_file")
 if check_backup_file == "1" then
     local api_system = require "luci.controller.api.system"
     local lastbackupfile = api_system.find_lastbackupfile()

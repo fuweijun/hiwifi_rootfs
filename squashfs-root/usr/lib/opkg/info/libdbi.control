@@ -9,5 +9,5 @@ Essential: no
 Priority: optional
 Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
 Architecture: ralink
-Installed-Size: 16565
+Installed-Size: 16570
 Description:  libdbi implements a database-independent abstraction layer in C.

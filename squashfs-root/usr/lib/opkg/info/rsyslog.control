@@ -1,0 +1,13 @@
+Package: rsyslog
+Version: 8.2.2-fibrizo.20140901
+Depends: libc, libpthread, libestr, liblogging, zlib, libjson-c, librt, logrotate
+Provides: 
+Source: /ROOT/diskb/hiwifi/branch/release0.9007/HC5661/package/rsyslog
+Section: admin
+Status: unknown ok not-installed
+Essential: no
+Priority: optional
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Architecture: ralink
+Installed-Size: 402470
+Description:  rsyslog - advanced syslog server

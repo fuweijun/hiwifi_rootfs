@@ -9,6 +9,6 @@ Essential: no
 Priority: optional
 Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
 Architecture: ralink
-Installed-Size: 19505
+Installed-Size: 19433
 Description:  802.1X client compatible with RuiJie.
  Support <ALL> RuiJie clients!

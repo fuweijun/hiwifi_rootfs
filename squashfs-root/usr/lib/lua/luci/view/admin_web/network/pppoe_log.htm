@@ -1,0 +1,50 @@
+<%
+--[[
+	Info	pppoe log
+	Author Chaogang Liu  <chaogang.liu@hiwifi.tw>
+    Copyright   2014
+]]--
+
+local ver  = require "luci.version"
+%>
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta name="format-detection" content="telephone=no" />
+<title>HiWiFi 路由器</title>
+<link rel="stylesheet" href="<%=resource%>/web/css/style.css?v=<%=ver.svnRevNum%>" type="text/css"/>
+<script type="text/javascript" src="<%=resource%>/web/js/jquery-1.8.1.min.js?v=<%=ver.svnRevNum%>"></script>
+<script type="text/javascript" src="<%=resource%>/web/js/artDialog/jquery.artDialog.js?skin=blueskin"></script>
+<script src="<%=resource%>/web/js/artDialog/plugins/iframeTools.source.js?v=<%=ver.svnRevNum%>"></script>
+<style type="text/css">
+</style>
+</head>
+<div class="title">
+	<h2><%:拨号日志%></h2>
+</div>
+<div class="box">
+	<textarea id="pppoe_log_view" rows="30" cols="120" readonly="readonly"></textarea>
+</div>
+
+</body>
+<script type="text/javascript">
+
+$(function(){
+    var get_pppoe_log = function(){
+        $.post("<%=luci.dispatcher.build_url("api", "network","pppoe_log")%>",{},function(rsp)
+        {
+           var log = rsp;
+           $("#pppoe_log_view").text(log);
+        })
+        .error(function() {
+            $("#pppoe_log_view").text("<%:获取日志失败%>");
+        });
+    }
+
+    get_pppoe_log();
+})
+
+</script>
+</html>

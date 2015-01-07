@@ -1,5 +1,5 @@
 Package: kmod-napt66
-Version: 3.3.8+0.2-20130903.1
+Version: 3.3.8+r18-20141008
 Depends: ip6tables, radvd
 Provides: 
 Source: package/napt66
@@ -9,5 +9,5 @@ Essential: no
 Priority: optional
 Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
 Architecture: ralink
-Installed-Size: 7226
+Installed-Size: 7261
 Description:  Stateful IPv6-to-IPv6 Network Address Port Translation.

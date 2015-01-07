@@ -1,0 +1,13 @@
+Package: liblogging
+Version: 1.0.4-1
+Depends: libc
+Provides: 
+Source: /ROOT/diskb/hiwifi/branch/release0.9007/HC5661/package/liblogging
+Section: libs
+Status: unknown ok not-installed
+Essential: no
+Priority: optional
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Architecture: ralink
+Installed-Size: 5919
+Description:  liblogging - An easy to use logging library

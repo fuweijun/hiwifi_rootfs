@@ -1,0 +1,404 @@
+<%
+--[[
+	Info	设置 Qos
+	Author	Chaogang Liu  <chaogang.liu@hiwifi.tw>
+	Copyright	2014
+]]--
+
+local ver  = require "luci.version"
+local start_test = luci.http.formvalue_htmlencode("start_test")
+%>
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta name="format-detection" content="telephone=no" />
+<title>HiWiFi 路由器</title>
+<link rel="stylesheet" href="<%=resource%>/web/css/style.css?v=<%=ver.svnRevNum%>" type="text/css"/>
+<script type="text/javascript" src="<%=resource%>/web/js/jquery-1.8.1.min.js?v=<%=ver.svnRevNum%>"></script>
+<script type="text/javascript" src="<%=resource%>/web/js/jquery-1.8.1.min.js?v=<%=ver.svnRevNum%>"></script>
+<script src="<%=resource%>/web/js/artDialog/plugins/iframeTools.source.js?v=<%=ver.svnRevNum%>"></script>
+<script type="text/javascript" src="<%=resource%>/conversions.js?v=<%=ver.svnRevNum%>"></script>
+</head>
+
+<style type="text/css">
+table.zone td.tor{
+	text-align: right;
+	width:120px;
+	line-height:14px;
+}
+
+#qos_setup_notice{
+    margin: 20px 0;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+#speed_test_down{
+}
+
+#speed_test_up{
+}
+
+#start_speed_test{
+    cursor: pointer;
+    padding: 0 15px;
+    height: 30px;
+    line-height: 30px;
+}
+
+#loading{
+    display: none;
+}
+
+#qos_speed_test_area{
+    border: 1px dashed gray;
+    -moz-border-radius: 5px;      /* Gecko browsers */
+    -webkit-border-radius: 5px;   /* Webkit browsers */
+    border-radius: 5px;            /* W3C syntax */
+    padding: 5px 20px;
+}
+</style>
+<div class="title">
+    <h2>高级设置<i>智能限速设置 , 及其他高级设置</i></h2>
+</div>
+<div class="menu">
+    <% include("admin_web/menu/adv_menu") %>
+</div>
+<div class="box setup_box">
+	<form id="form1"> 
+	<div class="area">
+	<ul class="ullist">
+	<li>
+		<div class="memu">
+		    <p class="item-txt"><span class="on-off" style="font-size:14px;">开关<button type="button" class="on" style="margin-left:20px;">开关</button></span></p>
+		    <div id="loading">处理中...</div>
+		</div>
+		<div>
+		  <div id="qos_speed_test_area">
+		      <div style="clear: both">
+    		      <div style="font-weight: bold; width: 40%; font-size: 14px; float:left; margin-top: 10px">【测速小工具】</div>
+    		      <div style="float: right;">
+    		          <input type="button" value="开始测速" class="btn" id="start_speed_test">
+    		      </div>
+		      </div>
+		      <div style="height: 50px; clear: both; margin-left: 90px;">
+    		      <div>下行测速结果：<span id="speed_test_down">未知</span></div>
+    		      <div>上行测速结果：<span id="speed_test_up">未知</span></div>
+		      </didv>
+		  </div>
+		</div>
+		<div id="qos_setup_div" style="display:none">
+    		<div style="display:none">
+                <p id="qos_set_alert"></p>
+            </div>
+    		<div id="qos_setup_notice">
+        		<span>请如实填写下行、上行带宽值（数值越精准，智能QoS的效果越好）</span>
+    		</div>
+    		<div class="memu">
+    			<p><label><%:下行总带宽%></label><input type="text" name="total_down" value="" class="txt" autocomplete="off" placeholder="示例：10" maxlength="6"><span>M</span>
+    			<span style="color: #999; margin-left: 20px">(最大1000M) 带宽数值可参考测速结果</span>
+    			</p>
+    			<p><label><%:上行总带宽%></label><input type="text" name="total_up" value="" class="txt" autocomplete="off" placeholder="示例：2" maxlength="6"><span>M</span>
+    			<span style="color: #999; margin-left: 20px">(最大1000M) 带宽数值可参考测速结果</span>
+    			</p>
+    		</div>
+    	    <div id="msg"></div>
+    		<div class="btnbox">
+    			<input type="button" value="保存" class="btn" id="submit_btn">
+    			<img style="display:none;" id="loading2" src="<%=resource%>/web/js/artDialog/skins/icons/loading.gif" alt="HiWiFi 路由器">
+    		</div>
+		</div>
+		<div id="qos_stop_div" style="display:none">
+		  QoS 服务未打开
+		</div>
+	</li>
+	</ul>
+	</div>
+	</form>
+</div>
+<script type="text/javascript">
+$(function(){
+    var lock = {}
+    var start_test = '<%=start_test%>'
+    var qos_status_cache
+    var speed_test_result_cache
+
+	var qos_status = function(){
+    	//qos/status 
+    	var request_date = {}; 
+    	$.getJSON("<%=luci.dispatcher.build_url("api", "qos","status")%>",request_date,function(rsp) 
+    	{
+    	   if(rsp.code == 0){
+    	       qos_status_cache = rsp.data
+        	   var down = rsp.data.total_down_kb;
+        	   var up = rsp.data.total_up_kb;
+        	   var active = rsp.data.active;
+        	   var down_Mb = conversions.traffic_format(down+'Kb', 'Mb')
+        	   var up_Mb = conversions.traffic_format(up+'Kb', 'Mb')
+        	   if(down_Mb){
+            	   $("input[name=total_down]").val(down_Mb.value)
+        	   }
+        	   if(up_Mb){
+            	   $("input[name=total_up]").val(up_Mb.value)
+        	   }
+        	   init_qos_status(active)
+        	   alert_qos()
+    	   }
+    	})
+	}
+
+	var set_total_qos = function(down, up, args){
+	    if(args && args.init && down == "" && up == ""){
+	       return
+	    }
+	    $("#loading2").show()
+	    $("#msg").text("")
+	    var down_Kb = conversions.traffic_format(down+"Mb", 'Kb')
+        if(down_Kb){
+        }else{
+            $("#loading2").hide()
+            window.parent.art.dialog({icon:"error",title:false,content:"下行格式有误"}).lock().time(4);
+            return
+        }
+        var up_Kb = conversions.traffic_format(up+"Mb", 'Kb')
+        if(up_Kb){
+        }else{
+            $("#loading2").hide()
+            window.parent.art.dialog({icon:"error",title:false,content:"上行格式有误"}).lock().time(4);
+            return
+        }
+        var int_down_Kb = parseInt(down_Kb.value / 8) * 8
+        if(int_down_Kb <= 0){
+            $("#loading2").hide()
+            window.parent.art.dialog({icon:"error",title:false,content:"下行太小"}).lock().time(4);
+            return
+        }
+        if(int_down_Kb > 1000000){
+            $("#loading2").hide()
+            window.parent.art.dialog({icon:"error",title:false,content:"<%:下行太大，不能超过1000M%>"}).lock().time(4);
+            return
+        }
+        var int_up_Kb = parseInt(up_Kb.value / 8) * 8
+        if(int_up_Kb <= 0){
+            $("#loading2").hide()
+            window.parent.art.dialog({icon:"error",title:false,content:"上行太小"}).lock().time(4);
+            return
+        }
+        if(int_up_Kb > 1000000){
+            $("#loading2").hide()
+            window.parent.art.dialog({icon:"error",title:false,content:"<%:上行太大，不能超过1000M%>"}).lock().time(4);
+            return
+        }
+        if(lock['set_total_qos']){
+           $("#loading2").hide()
+           return;
+        }
+        lock['set_total_qos'] = true
+        var request_date = {"down":int_down_Kb, "up":int_up_Kb};
+        $.post("<%=luci.dispatcher.build_url("api", "qos","set_total")%>",request_date,function(rsp) 
+        {
+            if(rsp.code == 0){
+                window.parent.art.dialog({icon:"succeed",title:false,content:"设置成功"}).lock().time(4);
+            }else{
+                window.parent.art.dialog({icon:"error",title:false,content:"设置失败"}).lock().time(4);
+            }
+            $("#loading2").hide()
+            qos_status()
+            lock['set_total_qos'] = false
+        }).error(function() {
+            $("#loading2").hide()
+            lock['set_total_qos'] = false
+        });
+	}
+	
+	var start_speed_test = function(){
+	    if(lock['start_speed_test']){
+           return;
+        }
+        lock['start_speed_test'] = true
+        $("#start_speed_test").val("测速中...")
+        $("#speed_test_down").html("测速中...")
+        $("#speed_test_up").html("测速中...")
+       var request_date = {};
+       $.post("<%=luci.dispatcher.build_url("api", "qos","start_speed_test")%>",request_date,function(rsp) 
+        {
+            if(rsp.code == 0){
+                setTimeout(function(){
+                    get_speed_test_result(function(qos_data){
+                        $("#loading2").hide()
+                        $("#msg").text("")
+                        lock['start_speed_test'] = false
+                        set_speed_test_result(qos_data)
+                        $("#start_speed_test").val("开始测速")
+                    })
+                }, 30000);
+            }else{
+                $("#start_speed_test").val("开始测速")
+            }
+        });
+	}
+	
+	var get_speed_test_result = function(success_callback){
+        $.getJSON("<%=luci.dispatcher.build_url("api", "qos","speed_test_result")%>",{},function(rsp)
+        {
+            if(rsp.code == 0){
+                if(typeof(success_callback) == "function"){
+                    success_callback(rsp.data)
+                }
+            }
+        })
+    }
+    
+    var qos_start = function(success_callback){
+        $.post("<%=luci.dispatcher.build_url("api", "qos","start")%>",{},function(rsp)
+        {
+            if(rsp.code == 0){
+                if(typeof(success_callback) == "function"){
+                    success_callback(rsp)
+                }
+            }
+        })
+    }
+    
+    var qos_stop = function(success_callback){
+        $.post("<%=luci.dispatcher.build_url("api", "qos","stop")%>",{},function(rsp)
+        {
+            if(rsp.code == 0){
+                if(typeof(success_callback) == "function"){
+                    success_callback(rsp)
+                }
+            }
+        })
+    }
+    
+    var qos_disable = function(success_callback){
+        $.post("<%=luci.dispatcher.build_url("api", "qos","disable")%>",{},function(rsp)
+        {
+            if(rsp.code == 0){
+                if(typeof(success_callback) == "function"){
+                    success_callback(rsp)
+                }
+            }
+        })
+    }
+    
+    var set_speed_test_result = function(qos_data){
+        if(!qos_data){
+           return;
+        }
+        if(qos_data.speed_down_kb != null && qos_data.speed_down != null){
+            var speed_down_KB = qos_data.speed_down_kb / 8
+            var speed_down = qos_data.speed_down * 8 / 1000
+            var speed_down_html = speed_down+" M"+"&nbsp;&nbsp;("+speed_down_KB+" KB/s)"
+            $("#speed_test_down").html(speed_down_html)
+        }
+
+        if(qos_data.speed_up_kb != null && qos_data.speed_up != null){
+            var speed_up_KB = qos_data.speed_up_kb / 8
+            var speed_up = qos_data.speed_up * 8 / 1000
+            var speed_up_html = speed_up+" M"+"&nbsp;&nbsp;("+speed_up_KB+" KB/s)"
+            $("#speed_test_up").html(speed_up_html)
+        }
+    }
+    
+    $(".on-off").click(function(){
+        var switch_b = $(this).children("button");
+        var status_now = switch_b.attr("class");
+        if(status_now == "on"){
+            loading_show(true)
+            qos_disable(function(){
+                qos_status()
+                loading_show(false)
+            });
+        } else {
+            loading_show(true)
+            qos_start(function(){
+                init_qos_status(true)
+                loading_show(false)
+                submit_qos({"init":true})
+            });
+        }
+    })
+    
+    var init_qos_status = function(data){
+        var switch_b = $(".on-off").children("button");
+        if(data == true){
+            switch_b.attr("class", "on")
+            $("#qos_setup_div").show()
+            $("#qos_speed_test_area").show()
+            $("#qos_stop_div").hide()
+        }else{
+            switch_b.attr("class", "off")
+            $("#qos_setup_div").hide()
+            $("#qos_speed_test_area").hide()
+            $("#qos_stop_div").show()
+        }
+    }
+    
+    var validate_qos_set = function(user_set_data, speed_test){
+       if(user_set_data && speed_test){
+           if(user_set_data.total_down_kb && speed_test.speed_down_kb &&
+            parseInt(user_set_data.total_down_kb) < parseInt(speed_test.speed_down_kb)){
+                return true
+           }
+           if(user_set_data.total_up_kb && speed_test.speed_up_kb &&
+                parseInt(user_set_data.total_up_kb) < parseInt(speed_test.speed_up_kb)){
+               return true
+           }
+       }
+       return false
+    }
+    
+    var loading_show = function(show){
+        if(show == true){
+            $("#loading").show();
+        }else{
+            $("#loading").hide();
+        }
+    }
+    
+    var alert_qos = function(){
+        if(validate_qos_set(qos_status_cache, speed_test_result_cache)){
+            var alert_ico = '<img src="/turbo-static/turbo/web/images/alert-icon.png" height="15" border="0">'
+            $("#qos_set_alert").html(alert_ico+"QoS设置不佳，可能导致上网变慢")
+        }else{
+            $("#qos_set_alert").html("")
+        }
+    }
+    
+    var init = function(){
+        qos_status()
+        if(start_test == "1"){
+            start_speed_test()
+        }
+        
+        get_speed_test_result(function(qos_data){
+            set_speed_test_result(qos_data)
+            speed_test_result_cache = qos_data
+            alert_qos()
+        })
+    }
+    
+    var submit_qos = function(args){
+		var down = $("input[name=total_down]").val()
+		var up = $("input[name=total_up]").val()
+		set_total_qos(down, up, args)
+    }
+
+	$("#submit_btn").click(function(){
+	   submit_qos()
+	})
+	
+	$("#start_speed_test").click(function(){
+		start_speed_test()
+	})
+
+	init()
+
+})
+
+</script>
+</body>
+</html>

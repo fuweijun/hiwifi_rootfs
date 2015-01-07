@@ -54,6 +54,7 @@ $(window).load(function() {
 
 function to_download(){
     window.location = "http://www.hiwifi.com/download/all/";
+    return false;
 }
 
 function update_wifi(callback){
@@ -102,10 +103,6 @@ function reboot_window(){
     });
 }
 
-function to_next(){
-    test_www();
-}
-
 function test_www(){
     autoLink("http://www.baidu.com/img/bdlogo.gif",{
     "success":function(){
@@ -125,6 +122,10 @@ function test_www(){
         $("#check_msg").html('无法连通互联网，请检查');
         setTimeout("test_www()", 2000);
     });
+}
+
+function to_next(){
+    test_www();
 }
 
 </script>

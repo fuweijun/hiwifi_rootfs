@@ -1,0 +1,109 @@
+<%
+--[[
+    Info    网络诊断帮助
+    Author  ChaogangLiu  <chaogang.liu@hiwifi.tw>
+    Copyright 2014
+]]--
+
+local ver  = require "luci.version"
+local qidReq = luci.http.formvalue_htmlencode("qid")
+if qidReq == nil then
+    qidReq = ""
+end
+%>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title><%:网络诊断帮助%></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel='stylesheet' href='<%=resource%>/web/net_detect_2/css/net.css?v=<%=ver.svnRevNum%>' type='text/css' media='all' />
+    <script type="text/javascript" src="<%=resource%>/web/js/jquery-1.8.1.min.js?v=<%=ver.svnRevNum%>"></script>
+</head>
+<body>
+<div class="bd">
+    <div class="header">
+        <div class="logo"></div><a href="<%=luci.dispatcher.build_url('admin_web')%>" class="back">路由器后台</a>
+    </div>
+    <div class="main message">
+        <div class="title">诊断帮助</div>
+        <dl>
+            <dt>问题</dt>
+            <dd id="question"></dd>
+        </dl>
+        <dl>
+            <dt>解决方案</dt>
+            <dd id="answer"></dd>
+        </dl>
+    </div>
+    <div class="footer">
+        Copyright © 2012-2014 HiWiFi.com
+    </div>
+</div>
+</body>
+<script type="text/javascript">
+var qid = '<%=qidReq%>';
+var set_net_url = "<%=luci.dispatcher.build_url("admin_web")%>?act=set_network";
+var net_setup_url = "<a href="+set_net_url+" target='_blank'>设置外网</a>";
+
+var set_wifi_channel_url = "<%=luci.dispatcher.build_url("admin_web")%>?act=wifi_channel";
+var wifi_channel_url = "<a href='"+set_wifi_channel_url+"' target='_blank'>设置穿墙模式</a>";
+var wifi_channel_line_url = "<a href='"+set_wifi_channel_url+"' target='_blank'>WiFi信道</a>";
+var set_wifi_txpwr_url = "<a href='"+set_wifi_channel_url+"' target='_blank'>信号强度</a>";
+
+var dev_list_url = "<%=luci.dispatcher.build_url("admin_web")%>?act=devices";
+var dev_list = "<a href='"+dev_list_url+"' target='_blank'>设备管理</a>";
+
+var wifi_url = "<%=luci.dispatcher.build_url("admin_web")%>?act=set_wifi";
+var wifi = "<a href='"+wifi_url+"' target='_self'>无线管理</a>";
+
+var unlink_data = {'q':'路由器的网线没有插好', 'a':'请将网线的一端插在路由器WAN口，另一端插在运营商提供的宽带接口上，不要接错哦~ 如果还是不行，换一条网线试试？（如果路由器正在使用“无线中继”方式上网，请忽略本条建议。）'}
+var qalist = new Array();
+qalist['txpwr'] = {'q':'路由器的信号强度弱', 'a':'路由器当前信号强度弱，如果影响正常上网，请将'+set_wifi_txpwr_url+'设置为强。'}
+//qalist['channel'] = {'q':'信道拥挤', 'a':'建议调整'+wifi_channel_line_url}
+qalist['devices_down_speed'] = {'q':'已联网设备可能有大流量下载行为', 'a':'如果已经影响上网，请到'+dev_list+'查看。'}
+qalist['net_detect'] = {'q':'网络问题', 'a':net_setup_url}
+qalist['net_detect_dns'] = {'q':'路由器使用了自定义DNS，可能会影响上网效果', 'a':'如果已经影响上网，建议取消“自定义DNS”（<a href="'+set_net_url+'" target="_blank">立即设置</a>）；如果上网没影响，可以忽略本条建议。'}
+qalist['net_detect_dns_miss'] = {'q':'无DNS', 'a':net_setup_url}
+qalist['pppoe'] = {'q':'拨号问题', 'a':net_setup_url}
+qalist['dhcp'] = {'q':'自动分配ip问题', 'a':net_setup_url}
+qalist['static'] = {'q':'静态ip问题', 'a':net_setup_url}
+qalist['wisp'] = {'q':'无线中继问题', 'a':net_setup_url}
+qalist['check_website'] = {'q':'宽带运营商的网络环境有问题', 'a':'路由器网络连接正常，请联系运营商检查网络环境是否畅通。'}
+qalist['wifi_closed'] = {'q':'无线被关闭', 'a':wifi}
+qalist['device_signal'] = {'q':'设备的无线信号太弱', 'a':'建议将你的终端设备靠近路由器，或者调整路由器天线使其直立（垂直水平面）'}
+qalist['dev_hiwifi_http_get'] = {'q':'你的终端设备使用了自定义DNS，可能会影响上网效果', 'a':'如果已经影响上网，建议取消终端设备的自定义DNS；如果上网没影响，可以忽略本条建议。'}
+qalist['pppoe_691'] = {'q':'你的宽带帐号无法使用（错误代码：691）', 'a':'有可能是帐号密码错误，也有可能是宽带费到期帐号无法使用，请联系宽带运营商。'}
+qalist['pppoe_646'] = {'q':'你的宽带帐号无法使用（错误代码：646）', 'a':'你的宽带帐号无法使用（错误代码：646），请联系宽带运营商。'}
+qalist['pppoe_647'] = {'q':'你的宽带帐号无法使用（错误代码：647）', 'a':'你的宽带帐号无法使用（错误代码：647），请联系宽带运营商。'}
+qalist['pppoe_648'] = {'q':'你的宽带帐号无法使用（错误代码：648）', 'a':'你的宽带帐号无法使用（错误代码：648），请联系宽带运营商。'}
+qalist['pppoe_649'] = {'q':'你的宽带帐号无法使用（错误代码：649）', 'a':'你的宽带帐号无法使用（错误代码：649），请联系宽带运营商。'}
+qalist['pppoe_678'] = {'q':'宽带运营商的服务器未响应（错误代码：678）', 'a':'有可能是运营商服务器正在升级，也有可能是网线松动，建议拔掉网线10分钟后重新插入试试看，如果还是不行，请联系宽带运营商。'}
+qalist['pppoe_709'] = {'q':'更改域上的密码时发生错误（错误代码：709）', 'a':'密码可能太短或者可能与以前使用的密码匹配，请联系宽带运营商。'}
+qalist['pppoe_pending'] = {'q':'<%:正在拨号，请稍侯%>', 'a':'<%:PPPOE正在拨号中，请到%><a href="'+set_net_url+'" target="_blank"><%:外网设置%></a><%:查看拨号状态%>'}
+qalist['no_con_wisp'] = {'q':'路由器所中继的无线网络无法使用', 'a':'请检查无线中继的网络是否存在、密码是否正确、当前路由器是否正确获取到了IP地址（例如，上层设备未开启DHCP服务可能会导致该问题）。<a href="'+set_net_url+'" target="_blank">立即查看</a>'}
+qalist['no_con_dhcp'] = {'q':'自动方式 (DHCP)无法上网', 'a':'请确认上联设备是否打开DHCP服务'}
+qalist['no_con_static'] = {'q':'静态IP设置有问题', 'a':'静态IP上网方式有别于“自动方式（DHCP）”和“宽带拨号”上网方式，使用前请确认当前网络是否是静态IP网络。如果是静态IP网络，请向网络管理员核实IP地址、子网掩码、网关、首选DNS、备用DNS等参数。<a href="'+set_net_url+'" target="_blank">立即查看</a>'}
+qalist['no_con_pppoe'] = {'q':'PPPOE拨号出现异常', 'a':'可能由于宽带运营商线路不稳定，导致路由器PPPOE拨号异常，请联系宽带运营商。'}
+qalist['unlink'] = unlink_data
+qalist['unlink_dhcp'] = unlink_data
+qalist['unlink_pppoe'] = unlink_data
+qalist['unlink_static'] = unlink_data
+qalist['unlink_wisp'] = unlink_data
+
+function show_question(qid){
+    var qa = qalist[qid];
+    if(qa){
+        if(qa.q){
+            $("#question").html(qa.q)
+        }
+        if(qa.a){
+            $("#answer").html(qa.a)
+        }
+    }
+}
+
+show_question(qid);
+
+</script>
+</html>

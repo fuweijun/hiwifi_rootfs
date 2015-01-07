@@ -2,12 +2,12 @@ Package: pppoe-term
 Version: 0.1-20140219
 Depends: libc, libpcap
 Provides: 
-Source: /home/build/hiwifi/branch/release0.9005/HC5661/package/pppoe-term
+Source: /ROOT/diskb/hiwifi/branch/release0.9007/HC5661/package/pppoe-term
 Section: utils
 Status: unknown ok not-installed
 Essential: no
 Priority: optional
 Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
 Architecture: ralink
-Installed-Size: 2540
+Installed-Size: 2538
 Description:  Kill old PPPoE sessions

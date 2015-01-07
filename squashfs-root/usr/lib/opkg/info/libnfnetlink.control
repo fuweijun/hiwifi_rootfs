@@ -9,7 +9,7 @@ Essential: no
 Priority: optional
 Maintainer: Jo-Philipp Wich <jow@openwrt.org>
 Architecture: ralink
-Installed-Size: 8910
+Installed-Size: 8903
 Description:  libnfnetlink is is the low-level library for netfilter related kernel/userspace communication.
  It provides a generic messaging infrastructure for in-kernel netfilter subsystems
  (such as nfnetlink_log, nfnetlink_queue, nfnetlink_conntrack) and their respective users

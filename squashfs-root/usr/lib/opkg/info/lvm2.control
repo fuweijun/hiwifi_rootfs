@@ -2,14 +2,14 @@ Package: lvm2
 Version: 2.02.96-20140715
 Depends: libc, libdevmapper
 Provides: 
-Source: /home/build/hiwifi/branch/release0.9005/HC5661/feeds/lvm2
+Source: /ROOT/diskb/hiwifi/branch/release0.9007/HC5661/feeds/lvm2
 Section: utils
 Status: unknown ok not-installed
 Essential: no
 Priority: optional
 Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
 Architecture: ralink
-Installed-Size: 358893
+Installed-Size: 357763
 Description:  LVM2 refers to a new userspace toolset that provide logical volume management
  facilities on linux. It is reasonably backwards-compatible with the original
  LVM toolset.

@@ -48,8 +48,23 @@ ralink_board_detect() {
 	*"HiWiFi-HB-750ACH Board")
 		name="BL-H750AC"
 		;;
+	*"HiWiFi-HB-8100 Board")
+		name="BL-T8100"
+		;;
 	*"HiWiFi-HB-845H Board")
 		name="BL-855R"
+		;;
+	*"HiWiFi Wireless ZC-9525 Board")
+		name="ZC-9525"
+		;;
+	*"HiWiFi Wireless ZC-9526 Board")
+		name="ZC-9526"
+		;;
+	*"HiWiFi Wireless ZC-9527 Board")
+		name="ZC-9527"
+		;;
+	*"HiWiFi Wireless HC5762 Board")
+		name="HC5762"
 		;;
 	esac
 
@@ -100,7 +115,7 @@ tw_get_mac() {
 tw_set_bridge_port() {
 	local board=$(tw_board_name)
 	case "$board" in
-	HC5661 | HC5761 | HC5663 | HC5861 | HB5881)
+	HC5661 | HC5761 | HC5663 | HC5861 | HB5881 | ZC-9526 | ZC-9525 | HC5762)
 		if [ $1 -eq 0 ]; then
 			# port 1-4 in VLAN 1(LAN), port 0 in VLAN 2(WAN)
 			switch reg w 2114 10001

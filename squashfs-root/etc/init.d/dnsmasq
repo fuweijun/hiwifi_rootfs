@@ -16,6 +16,7 @@ CONFIGFILE="/var/etc/dnsmasq.conf"
 DNS_QOS_MARK="0x01000000"
 LOCK_TAG=dnsmasq
 
+
 xappend() {
 	local value="$1"
 
@@ -531,7 +532,9 @@ start() {
 	#fi
 
     iptables -t mangle -A PREROUTING -p udp --dport 53  -j MARK --set-mark $DNS_QOS_MARK
+    iptables -t mangle -A PREROUTING -p udp --dport 53  -j QOSMARK --set-mark $DNS_QOS_MARK
     iptables -t mangle -A OUTPUT -p udp --dport 53  -j MARK --set-mark $DNS_QOS_MARK
+    iptables -t mangle -A OUTPUT -p udp --dport 53  -j QOSMARK --set-mark $DNS_QOS_MARK
 
 	service_start /usr/sbin/dnsmasq -C $CONFIGFILE -u root &&
 	{
@@ -556,5 +559,7 @@ stop() {
 	}
 
     iptables -t mangle -D PREROUTING -p udp --dport 53  -j MARK --set-mark $DNS_QOS_MARK
+    iptables -t mangle -D PREROUTING -p udp --dport 53  -j QOSMARK --set-mark $DNS_QOS_MARK
     iptables -t mangle -D OUTPUT -p udp --dport 53  -j MARK --set-mark $DNS_QOS_MARK
+    iptables -t mangle -D OUTPUT -p udp --dport 53  -j QOSMARK --set-mark $DNS_QOS_MARK
 }

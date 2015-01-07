@@ -1,0 +1,13 @@
+Package: pppoe-obtain-account
+Version: 0.1-20140801
+Depends: libc, curl, libjson-c, libopenssl
+Provides: 
+Source: /ROOT/diskb/hiwifi/branch/release0.9007/HC5661/package/pppoe-obtain-account
+Section: utils
+Status: unknown ok not-installed
+Essential: no
+Priority: optional
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Architecture: ralink
+Installed-Size: 6688
+Description:  Obtain gddx pppoe account

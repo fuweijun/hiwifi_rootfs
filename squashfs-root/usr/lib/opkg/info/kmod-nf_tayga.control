@@ -2,12 +2,12 @@ Package: kmod-nf_tayga
 Version: 3.3.8-20140304
 Depends: kmod-ipv6
 Provides: 
-Source: /home/build/hiwifi/branch/release0.9005/HC5661/package/nf_tayga
+Source: /ROOT/diskb/hiwifi/branch/release0.9007/HC5661/package/nf_tayga
 Section: kernel
 Status: unknown ok not-installed
 Essential: no
 Priority: optional
 Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
 Architecture: ralink
-Installed-Size: 11102
+Installed-Size: 11103
 Description:  Kernel IPv4 to IPv6 Translation Module

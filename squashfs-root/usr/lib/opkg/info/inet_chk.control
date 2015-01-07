@@ -1,5 +1,5 @@
 Package: inet_chk
-Version: 1-20140807
+Version: 1-201401010
 Depends: libc
 Provides: 
 Source: package/network/services/inet_chk
@@ -9,5 +9,5 @@ Essential: no
 Priority: optional
 Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
 Architecture: all
-Installed-Size: 2185
+Installed-Size: 2639
 Description:  Check the access of inetnet is up or down.

@@ -30,7 +30,7 @@ ralink_setup_interfaces()
 		ucidef_set_interface_wan "eth2.2"
 		ralink_slave_lan_setup "eth2.1"
 		;;
-	HB5811)
+	HB5811 | ZC-9527)
 		ralink_slave_lan_setup "eth2.1"
 		;;
 	*)

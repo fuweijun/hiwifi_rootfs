@@ -3,9 +3,9 @@ local ver  = require "luci.version"
 local util  = require "luci.util"
 local http = require "luci.http"
 
-local autotype = util.fliter_unsafe(http.formvalue("autotype"))
-local findsuccess = http.formvalue("findsuccess")
-local from = http.formvalue("from")
+local autotype = http.formvalue_htmlencode("autotype")
+local findsuccess = http.formvalue_htmlencode("findsuccess")
+local from = http.formvalue_htmlencode("from")
 
 local msgResp_set
 
@@ -146,24 +146,29 @@ $(window).load(function() {
         }else if(type == "nonet"){
             window.location.href='<%=luci.dispatcher.build_url("admin_web", "guide", "internet_success")%>'+'?type=nonet&autotype='+autotype;
         }
+        return false;
     });
     
     listerenterkeydown(function(){
         form_submit();
+        return false;
     });
     
     $("#submit").click(function(){
        form_submit();
+       return false;
     });
     
     $("#forse_next").click(function(){
         link_success();
+        return false;
     });
 
     $("#pppoe_auto").click(function(){
         $("#pppoe_name_input").val("gddx-default");
         $("#pppoe_passwd_input").val("gddx-default");
         form_submit();
+        return false;
     });
 });
 
@@ -348,6 +353,7 @@ function update_ppp_status_view(){
 
 function link_success(){
     window.location.href='<%=luci.dispatcher.build_url("admin_web", "guide","internet_success")%>';
+    return false;
 }
 
 </script>

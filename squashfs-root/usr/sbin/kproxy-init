@@ -1,0 +1,65 @@
+#!/usr/bin/lua
+
+package.cpath = package.cpath .. ";/usr/lib/?.so"
+
+local fun = require "kproxy"
+
+local file
+
+local params = {}
+
+local i
+
+local host
+
+local dport
+
+local action
+
+if table.getn(arg) ~= 2 then
+	print("Lack of filename!")
+	return
+end
+
+action = arg[1]
+
+if action ~= "add" and action ~= "del" then
+	print("invalid action!")
+	return
+end
+
+file = io.open(arg[2], "r")
+
+if nil == file then
+	print("open file failed!")
+	return
+end
+
+params["param"] = {}
+i = 1
+for line in file:lines() do
+	if 0 ~= string.len(line) then
+		params["param"][i] = {}
+		_, dport_end = string.find(line, ":")
+		if dport_end ~= nil then
+			dport = string.sub(line, dport_end+1)
+			line = string.sub(line, 1, dport_end-1)
+		else
+			dport = "80"
+		end
+		
+		host = string.gsub(line, "\*.", ".")
+		params["param"][i]["rule"] = {HOST={host}, DPORT={dport}}
+		params["param"][i]["queueIndex"] = "0"		
+		params["param"][i]["namespace"] = "sys"	
+	end
+	i = i+1
+end
+
+params["action"] = action
+params["msg_type"] = "rules"
+params["debuglevel"] = "close"
+
+fun(params)
+
+file:close()

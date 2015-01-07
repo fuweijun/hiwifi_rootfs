@@ -5,3 +5,4 @@ nodeflate
 idle 0
 mppe stateless
 maxfail 0
+refuse-eap

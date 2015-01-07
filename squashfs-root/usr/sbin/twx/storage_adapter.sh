@@ -1,33 +1,29 @@
 #!/bin/sh
 
 type() {
-    uci get hiwifi.storage.type
+    storage get type
 }
 
 minsize() {
-    uci get hiwifi.storage.minsize
+    storage get minsize
 }
 
 state() {
-   if [ -f /tmp/storage/storage_state ]; then
-     cat /tmp/storage/storage_state
-   else
-     echo "removed"
-   fi
+   storage get state
 }
 
 info() {
-    if [ -f /tmp/storage/storage_info.txt ]; then
-        cat /tmp/storage/storage_info.txt
-    else
-        echo ""
-    fi
+    storage get info
 }
 
-sd_format() {
-    (source /sbin/sdfunc.sh && sd_manual_part &)
+format() {
+    logger "start (storage format &)"
+    (storage format &)
+    logger "end (storage format &)"
 }
 
-disk_format() {
-    (source /sbin/storage_format &)
+format_force() {
+    logger "start (storage format manual &)"
+    (storage format manual &)
+    logger "end (storage format manual &)"
 }

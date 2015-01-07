@@ -9,5 +9,5 @@ Essential: no
 Priority: optional
 Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
 Architecture: ralink
-Installed-Size: 1853
+Installed-Size: 1857
 Description:  Kernel modules for IPv4 tunneling

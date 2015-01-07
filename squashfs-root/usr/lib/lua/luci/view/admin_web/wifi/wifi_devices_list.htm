@@ -40,7 +40,7 @@ local ver  = require "luci.version"
 $(function(){
 	//$.ajaxSettings.async = false;
 	<%
-	local remote_addr = luci.http.getenv("REMOTE_ADDR") 
+	local remote_addr = luci.http.getenv_htmlencode("REMOTE_ADDR") 
 	local mac = luci.sys.net.ip4mac(remote_addr) or ""
 	%>
 	//本机 mac 地址

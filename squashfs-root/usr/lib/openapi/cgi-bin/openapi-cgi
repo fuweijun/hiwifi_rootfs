@@ -4,8 +4,21 @@ require("luci.sys")
 local callapi = require("openapi.callapi")
 local json = require("hiwifi.json")
 local util = require("luci.util")
+local nixio = require"nixio"
+
+--------close stdout and stderr---------
+local null = nixio.open("/dev/null", "w+")
+local tmp = nixio.dup(nixio.stdout)
+
+nixio.dup(null, nixio.stdout)
+nixio.dup(nixio.stdout, nixio.stderr)
+--null:close()
 
 function ret(output)
+  -------open stdout-------
+  nixio.dup(tmp, nixio.stdout)
+  --tmp:close()
+
   print("Status: 200")
   print("Content-Type: application/json\n")
 
@@ -47,6 +60,9 @@ local sign = get_sign(query_string)
 local request_uri = luci.sys.getenv("REQUEST_URI") or ""
 local method = get_method(request_uri)
 
+local server_addr = luci.sys.getenv("SERVER_ADDR") or ""
+local remote_addr = luci.sys.getenv("REMOTE_ADDR") or ""
+
 local content_type = luci.sys.getenv("CONTENT_TYPE")
 if string.match(content_type, "application/json") == nil then
   output["code"] = "100017"
@@ -55,11 +71,13 @@ if string.match(content_type, "application/json") == nil then
 end
 
 if method == "/call" then
-  if sign == nil or sign == "" then
-    output["code"] = "100011"
-    output["msg"] = "校验参数sign不合法"
-    output["data"] = ""
-    ret(output)
+  if server_addr ~= remote_addr then
+    if sign == nil or sign == "" then
+      output["code"] = "100011"
+      output["msg"] = "校验参数sign不合法"
+      output["data"] = ""
+      ret(output)
+    end
   end
 
   local body = io.stdin:read(tonumber(luci.sys.getenv("CONTENT_LENGTH")))

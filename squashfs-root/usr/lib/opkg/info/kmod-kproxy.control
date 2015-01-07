@@ -1,13 +1,13 @@
 Package: kmod-kproxy
-Version: 3.3.8+1.0.0-20140821
+Version: 3.3.8+1.0.0-20141021
 Depends: kmod-hwf-core, kmod-kjson, kmod-kmultifast
 Provides: 
-Source: /home/build/hiwifi/branch/release0.9005/HC5661/package/kproxy
+Source: /ROOT/diskb/hiwifi/branch/release0.9007/HC5661/package/kproxy
 Section: kernel
 Status: unknown ok not-installed
 Essential: no
 Priority: optional
 Maintainer: Chen Xu<chen.xu@hiwifi.tw>
 Architecture: ralink
-Installed-Size: 26137
+Installed-Size: 31150
 Description:  This package contains HiWiFi extensions.

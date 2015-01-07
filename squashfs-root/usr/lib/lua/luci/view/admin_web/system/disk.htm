@@ -38,7 +38,7 @@ end
 	<h2>高级设置<i>设置路由器安全 , 及其他高级设置</i></h2>
 </div>
 <div class="menu">
-	<% luci.util.output_adv_menu() %>
+	<% include("admin_web/menu/adv_menu") %>
 </div>
 
 <div class="box setup_box">
@@ -48,7 +48,11 @@ end
         </div>
     </div>
 	<div id="storage_div" class="memu row" style="padding-left: 50px;display:none">
-        <p><label><b>扩展存储状态</b></label><span style="margin-left:100px;line-height: 32px;height: 32px;" id="storage_status"></span></p>
+        <p style="margin-bottom: 0px;">
+        <label><b><%:扩展存储状态%></b></label>
+        <span style="margin-left:100px;line-height: 32px;height: 32px;" id="storage_status"></span>
+        </p>
+        <div style="margin-left:100px;">(<%:注意：如果是移动硬盘，请确保供电充足%>)</div>
     </div>
 	<br />
 	<div class="memu row" style="padding-left: 50px;">
@@ -288,12 +292,12 @@ function get_storage_state(){
                     $("#storage_status").html("未知状态，请稍后再查看");
                 }
                 $("#storage_div").show();
-                setTimeout("get_storage_state()", 5000);
+                setTimeout("get_storage_state()", 10000);
             }
         }
     })
     .fail(function(rsp){
-        setTimeout("get_storage_state()", 5000);
+        setTimeout("get_storage_state()", 10000);
     });
     
 }

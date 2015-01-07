@@ -2,14 +2,14 @@ Package: pdnsd
 Version: 1.2.9a-par-20140801
 Depends: libc, libpthread
 Provides: 
-Source: /home/build/hiwifi/branch/release0.9005/HC5661/feeds/pdnsd
+Source: /ROOT/diskb/hiwifi/branch/release0.9007/HC5661/feeds/pdnsd
 Section: net
 Status: unknown ok not-installed
 Essential: no
 Priority: optional
 Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
 Architecture: ralink
-Installed-Size: 76310
+Installed-Size: 76257
 Description:  pdnsd, is an IPv6 capable proxy DNS server with permanent caching (the cache
  contents are written to hard disk on exit) that is designed to cope with
  unreachable or down DNS servers (for example in dial-in networking).

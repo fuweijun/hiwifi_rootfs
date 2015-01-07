@@ -1,0 +1,113 @@
+#!/usr/bin/lua
+
+package.cpath = package.cpath .. ";/usr/lib/?.so"
+
+local json = require "libluajsonc"
+
+local fun = require "kproxy"
+
+local function handle_rules()
+
+	if table.getn(arg) < 2 then
+		return
+	end
+
+	local params
+	local debuglevel
+	
+	if arg[2] == "list" or arg[2] == "clean" then
+		if table.getn(arg) == 3 then
+			debuglevel = arg[3]
+		else
+			debuglevel = "close"
+		end
+		
+		params = {msg_type = arg[1], debuglevel=debuglevel, action=arg[2]}
+	else
+		if table.getn(arg) < 4 then
+			return
+		end	
+
+		if table.getn(arg) == 5 then
+			debuglevel = arg[5]
+		else
+			debuglevel = "close"
+		end
+		
+		local tab = json.decode(arg[3])
+		
+		local rule = {}
+		
+		local key = {"METHOD", "URI", "PORT", "ARGS", "ACCEPT", "ACCEPT_CHARSET", "ACCEPT_ENCODING", "ACCEPT_LANGUAGE", "AUTHORIZATION", 
+									"CACHE_CONTROL", "CONNECTION", "COOKIE", "DATE", "EXPECT", "FROM", "HOST", "IF_MATCH", "IF_MODIFIED_SINCE", "IF_NONE_MATCH", 
+									"IF_RANGE", "IF_UNMODIFIED_SINCE", "MAX_FORWARDS", "PRAGMA", "PROXY_AUTHORIZATION", "RANGE", "REFERER", "TE", "USER_AGENT", 
+									"SIP", "DIP", "SPORT", "DPORT",
+									"NOT_METHOD", "NOT_URI", "NOT_PORT", "NOT_ARGS", "NOT_ACCEPT", "NOT_ACCEPT_CHARSET", "NOT_ACCEPT_ENCODING", "NOT_ACCEPT_LANGUAGE", "NOT_AUTHORIZATION", 
+									"NOT_CACHE_CONTROL", "NOT_CONNECTION", "NOT_COOKIE", "NOT_DATE", "NOT_EXPECT", "NOT_FROM", "NOT_HOST", "NOT_IF_MATCH", "NOT_IF_MODIFIED_SINCE", "NOT_IF_NONE_MATCH", 
+									"NOT_IF_RANGE", "NOT_IF_UNMODIFIED_SINCE", "NOT_MAX_FORWARDS", "NOT_PRAGMA", "NOT_PROXY_AUTHORIZATION", "NOT_RANGE", "NOT_REFERER", "NOT_TE", "NOT_USER_AGENT", 
+									"NOT_SIP", "NOT_DIP", "NOT_SPORT", "NOT_DPORT"}
+									
+		local flag = 0
+		
+		for i,v in ipairs(key) do 
+			if nil ~= tab[key[i]] then
+				rule[key[i]] = tab[key[i]]
+				flag = 1
+			end	
+		end  
+		
+		if flag == 1 then
+			params = {msg_type = arg[1], debuglevel=debuglevel, action=arg[2], param = {{rule = json.encode(rule), queueIndex = arg[4]}}}
+		end
+		
+	end
+	
+	fun(params)
+end
+
+local function handle_addrport()
+	if table.getn(arg) < 2 then
+		return
+	end
+
+	local params
+	local debuglevel
+	
+	if arg[2] == "list" or arg[2] == "clean" then
+		if table.getn(arg) == 3 then
+			debuglevel = arg[3]
+		else
+			debuglevel = "close"
+		end
+		
+		params = {msg_type = arg[1], debuglevel=debuglevel, action=arg[2]}
+	else
+		if table.getn(arg) < 5 then
+			return
+		end	
+
+		if table.getn(arg) == 6 then
+			debuglevel = arg[6]
+		else
+			debuglevel = "close"
+		end
+		
+		params = {msg_type = arg[1], debuglevel=debuglevel, action=arg[2], param = {{ip = arg[3], port=arg[4], index=arg[5]}}}
+	end
+
+	fun(params)
+end
+
+if table.getn(arg) < 1 then
+	return
+end
+
+if arg[1] == "rules" then
+
+	handle_rules()
+	
+elseif arg[1] == "addrport" then
+
+	handle_addrport()
+	
+end

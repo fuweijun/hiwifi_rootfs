@@ -15,10 +15,6 @@ boot() {
 	}
 
 	# set leds to normal state
-	if [ -e /etc/config/led_disable ];then
-		:
-	else
-		. /etc/diag.sh
-		set_state done
-	fi
+	. /etc/diag.sh
+	set_state done
 }

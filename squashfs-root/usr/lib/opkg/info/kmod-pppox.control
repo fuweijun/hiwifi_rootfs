@@ -9,5 +9,5 @@ Essential: no
 Priority: optional
 Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
 Architecture: ralink
-Installed-Size: 1729
+Installed-Size: 1726
 Description:  Kernel helper module for PPPoE and PPTP support

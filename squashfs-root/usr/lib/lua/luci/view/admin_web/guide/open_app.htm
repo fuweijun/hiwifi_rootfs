@@ -45,10 +45,12 @@ local is_internet_connect = luci.util.is_internet_connect()
 var ssid_page = '<%=luci.dispatcher.build_url("admin_web", "guide", "ssid")%>';
 function next(){
     window.location.href = ssid_page;
+    return false;
 }
 $(window).load(function() {
     $("#skip_link").click(function(){
         next();
+        return false;
     });
     
     var u = navigator.userAgent;

@@ -6,6 +6,7 @@
 /usr/lib/cmagent/p2p.lua
 /usr/lib/cmagent/mobileapp.lua
 /usr/lib/market/call_func
+/usr/lib/cmagent/debug.lua
 /etc/hotplug.d/block/restart.d/60-market
 /usr/lib/cmagent/status.lua
 /etc/init.d/market

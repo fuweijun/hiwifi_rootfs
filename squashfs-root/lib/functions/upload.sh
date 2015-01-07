@@ -17,9 +17,17 @@ upload_data()
         local KEY=$(getrouterid_infogather)
         local FILE_MD5=$(md5sum $FILE | awk '{print $1}')
         local VERSION=$(cat /etc/.build)
-        local BOARD=$(cat /proc/cmdline | awk '{print $1}' | awk -F= '{print $2}')
+		local REALVERSION=$(cat /etc/.build | awk '{print $1}')
+		local BOARD=$(cat /proc/cmdline | awk '{print $1}' | awk -F= '{print $2}')
 
-        answer=$(curl -m 300 -F action=upload -F MAC=$MAC -F KEY=$KEY -F BOARD=$BOARD -F VERSION="$VERSION" -F file=@$FILE -F FILE_MD5=$FILE_MD5  "https://hwf-health-chk.hiwifi.com/index.php" -v -k 2>/dev/null)
+		if [ $# == 3 ]; then
+			echo $2 | grep -oE '[0-9]\.[0-9]{4,}\.[0-9]{4,}s' &> /dev/null
+			if [ $? -eq 0 ]; then
+				REALVERSION=$2
+			fi
+		fi
+	
+        answer=$(curl -m 300 -F action=upload -F MAC=$MAC -F KEY=$KEY -F TAG=$2 -F BOARD=$BOARD -F VERSION="$VERSION" -F file=@$FILE -F FILE_MD5=$FILE_MD5 -F REALVERSION=$REALVERSION "https://hwf-health-chk.hiwifi.com/index.php" -v -k 2>/dev/null)
         rv="$?"
         if [ "$rv" -eq 0 ]; then
                 json_load "$answer" 2>/dev/null
@@ -28,32 +36,32 @@ upload_data()
                 case "$code" in
                         "200")
                                 #Upload success.
-                                healog "upload success, $File, code=$code,answer=$answer."
+                                healib_log "upload success, $File, code=$code,answer=$answer."
                                 return 0
                                 ;;
                         "201")
                                 #File already existed in server.
-                                healog "upload existed error, $File, code=$code,answer=$answer."
+                                healib_log "upload existed error, $File, code=$code,answer=$answer."
                                 return 1
                                 ;;
                         "202")
                                 #Checksum MD5 failed.
-                                healog "upload MD5 error, $File, code=$code,answer=$answer."
+                                healib_log "upload MD5 error, $File, code=$code,answer=$answer."
                                 return 2
                                 ;;
                         "203")
                                 #Key authorized failed.
-                                healog  "upload Kye auth error, $File, code=$code,answer=$answer."
+                                healib_log  "upload Kye auth error, $File, code=$code,answer=$answer."
                                 return 3
                                 ;;
                         *)
                                 #Default
-                                healog "upload default error, $File, code=$code,answer=$answer."
+                                healib_log "upload default error, $File, code=$code,answer=$answer."
                                 return 4
                                 ;;
                 esac
         else
-                healog "upload failed, $File, code=$code,answer=$answer."
+                healib_log "upload failed, $File, code=$code,answer=$answer."
 		#Connect timeout
                 return 109
         fi

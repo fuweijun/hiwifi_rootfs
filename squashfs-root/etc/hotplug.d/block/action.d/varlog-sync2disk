@@ -1,38 +1,29 @@
 #!/bin/sh /etc/rc.common
 # Copyright (C) 2012-2013 HiWiFi Co., Ltd
+srcdir=/var/log
+src=$srcdir/syslog
+dstdir=/tmp/data/log
+dst=$dstdir/syslog
+max_file_count=25
 
-src=/var/log/syslog
-dst=/tmp/data/syslog
-
-reserve() {
-	local cnt
-	cnt=$(cat $1 2>/dev/null | wc -l)
-	cnt=$((cnt-$2))
-	if [ $cnt -gt 1 ];then
-		sed -i "1,${cnt}d" $1
-	fi
-}
 
 rotate() {
-	local i count
-	count=$(ls $dst.* | wc -w)
-	count=${count:-10}
-	while [ $count -gt 1 ]
+	local file is_boot_stage=1
+	for file in $(ls $src.* 2>/dev/null)
 	do
-		let count-=1
-		let i=count-1
-		mv $dst.$i $dst.$count 2>/dev/null
+		is_boot_stage=0
+		mv $file $dst.$(date +%Y%m%d%H%M%S).$(echo ${file#*.})
 	done
-	reserve $dst 10000
-	mv $dst $dst.0
+	[ $is_boot_stage -eq 1 ] && mv $dst $dst.$(date +%Y%m%d%H%M%S)
+	ls -t $dst.* 2>/dev/null | sed "1,${max_file_count}d" | xargs rm -rf
 }
 
 start() {
 	stop
 	if [ -L /tmp/data ];then
+		mkdir -p $dstdir
 		rotate
 		cp -f $src $dst
-		reserve $dst 10000
 		tail -f $src >> $dst 2>/dev/null &
 	fi
 }

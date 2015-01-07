@@ -2,14 +2,14 @@
 local ver  = require "luci.version"
 local util = require "luci.util"
 local http = require "luci.http"
-local url = util.fliter_unsafe(http.urlencode(http.formvalue("url")))
-local accept = http.formvalue("accept")
+local fs = require "nixio.fs"
+local url = http.formvalue_htmlencode("url")
+local accept = http.formvalue_htmlencode("accept")
 
 local guide_net = util.exec("cat /tmp/guide_net 2>/dev/null")
 
-local srcurl =  http.formvalue("url");
-if srcurl ~= nil then
-    util.exec("echo -n '"..srcurl.."' >/tmp/firstsrcurl 2>/dev/null")
+if url ~= nil then
+    fs.writefile("/tmp/firstsrcurl", url)
 end
 
 local tologin = 0
@@ -131,47 +131,27 @@ $(function(){
             $("#input_password1").val("");
             $("#login_btn").click(function(){
                 to_next();
+                return false;
             })
         }
     }else{
         $("#start_install").click(function(){
             if($("#checkbox").attr("checked") == "checked"){
-                if(has_internet_check_page_html()){
-                    $("html").html(internet_check_page_html);
-                }else{
-                    window.location.href="?url=<%=url%>&accept=1";
-                }
+                window.location.href="?url=<%=url%>&accept=1";
             }
+            return false;
         })
         $("#open_agreement").click(function(){
             $(".needagree").show();
             $(".no_needagree").hide();
+            return false;
         })
     }
 
-    if(is_defult_password){
-        var request_date =  {"username":"admin", "password":"<%=luci.version.default_password%>"}; 
-        $.post(login_action, request_date,function(rsp) 
-        {
-            internet_check_page_html = rsp;
-        }).error(function() {
-        });
-    }
-
     function to_next(){
-        if(has_internet_check_page_html()){
-            $("html").html(internet_check_page_html);
-        }else{
-            $("#loginForm").attr('action', login_action);
-            $("#urlback").val(login_action);
-            $("#loginForm").submit();
-        }
-    }
-
-    function has_internet_check_page_html(){
-        return internet_check_page_html &&
-            internet_check_page_html != '' &&
-            internet_check_page_html.indexOf("</html>") > -1;
+        $("#loginForm").attr('action', login_action);
+        $("#urlback").val(login_action);
+        $("#loginForm").submit();
     }
 })
 </script>

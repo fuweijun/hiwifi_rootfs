@@ -4,10 +4,11 @@
 . $IPKG_INSTROOT/lib/functions.sh
 . $IPKG_INSTROOT/lib/functions/service.sh
 
-. /etc/profile.hiwifi
+. $IPKG_INSTROOT/etc/profile.hiwifi
 
 initscript=$1
 action=${2:-help}
+actionsave=$action
 shift 2
 
 start() {
@@ -30,6 +31,11 @@ restart() {
 
 boot() {
 	start "$@"
+}
+
+ignore() {
+	logger -t rc.common "ignore $actionsave $initscript $START when it's starting $(cat /tmp/bootprionow) now"
+	return -1
 }
 
 shutdown() {
@@ -89,6 +95,9 @@ ${INIT_TRACE:+set -x}
 ALL_COMMANDS="start stop reload restart boot shutdown enable disable enabled depends ${EXTRA_COMMANDS}"
 list_contains ALL_COMMANDS "$action" || action=help
 [ "$action" = "reload" ] && action='eval reload "$@" || restart "$@" && :'
+
+[ "$action" = "boot" ] && echo $START >/tmp/bootprionow ||
+[ "$action" != "boot" ] && [ -n "$START" ] && [ "$START" -gt "$(cat /tmp/bootprionow)" ] && actionsave=$action && action=ignore
 
 #
 # @add by hiwifi:

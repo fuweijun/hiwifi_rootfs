@@ -1,0 +1,128 @@
+#!/usr/bin/lua
+
+local json = require("hiwifi.json")
+local util = require("luci.util")
+local fs = require("nixio.fs")
+local nixio = require("nixio")
+local io, pairs, table ,os ,print, string, type, tonumber, tostring = io, pairs, table, os ,print, string, type, tonumber, tostring
+
+local function exit(code, msg, data)
+  local ret = {}
+  ret.code = code
+  ret.msg = msg
+  ret.data = data or ""
+  print(json.encode(ret))
+  os.exit(0)
+end
+
+local function http_post(host, body)
+  local ltn12 = require("ltn12")
+  local hiwifi_util = require("hiwifi.util")
+  local ret_t = {}
+
+  local resp = hiwifi_util.download_to_string({
+    url = host,
+    source = ltn12.source.string(body),
+    method = 'POST',
+    headers = {
+      ["Content-Length"] = string.len(body),
+      ["Content-Type"] = "application/json"
+    }
+  })
+
+  local resp_t = json.decode(resp)
+
+  ret_t.code = resp_t.app_code
+  ret_t.msg = resp_t.app_msg
+  ret_t.data = resp_t.app_data
+  print(json.encode(ret_t))
+end
+
+-- user_info {"uid":1001,"name":"axruntime","gid":1001,"shell":"\/bin\/ash","gecos":"Linux User,,,","dir":"\/apps\/axruntime","passwd":"x"}
+-- profile axruntime,axruntime,/apps/axruntime,818307319
+local function get_appinfo()
+  local ret = {}
+  local profile_dir = "/etc/market.profile/" 
+  local uid = nixio.getuid()
+  local user_info_t = nixio.getpw(uid)
+  ret.name = user_info_t.user
+  ret.uid = user_info_t.uid
+  if user_info_t.name == "root" then
+    return ret
+  end
+  local profile = profile_dir .. user_info_t.name
+  if fs.access(profile) then
+    local profile_info = util.exec("cat "..profile)
+    profile_info = util.split(profile_info,"\n")[1]
+    profile_t = util.split(profile_info, ",")
+    ret.app_id = profile_t[4]
+    return ret
+  end
+  return nil
+end
+
+-- url = "http://client.openapi.hiwifi.com/call?dev_id=D4EE07086EE2"
+-- body = '{ "app_id": "13","client_id":"cloud","method": "apps.axsoftware.read","data":{"id":[1,2]} }'
+-- appinfo = { "user":"axruntime", "uid":"", "123", "app_id":"dfdaff"}
+local function call_api(method, data)
+  local openapi_client_host = "http://client.openapi.hiwifi.com"
+  local host = openapi_client_host .. "/call"
+  local data_t = json.decode(data)
+
+  local appinfo = get_appinfo()
+  if appinfo == nil then
+    exit("3", "userinfo error", "")
+  end
+
+  local body_t = {}
+  body_t.appinfo = appinfo
+  body_t.method = method
+  body_t.data = data_t
+  body_t.app_id = tostring(appinfo.app_id)
+  body_t.client_id = "cloud"
+
+  --local body = '{ "app_id": "13","client_id":"cloud","method": "apps.axsoftware.read","data":{"id":[1,2]} }'
+  local body = json.encode(body_t)
+  http_post(host, body)
+end
+
+local function check_param(method, data)
+  local data_t
+
+  if method == nil or method == "" then
+    exit("1", "method illegal", "")
+  end
+  local method_t = util.split(method, ".")
+  if type(method_t) ~= "table" or table.getn(method_t) ~= 3 then
+    exit("1", "method illegal", "")
+  end
+
+  data_t = json.decode(data)
+  if type(data_t) ~= "table" then
+    exit("2", "data is not valid json, please check", "")
+  end
+end
+
+local function usage()
+  print("Usage:")
+  print("openapi-cli help: print usage infomation")
+  print("openapi-cli call <method> <data>: call function")
+  os.exit(1)
+end
+
+local action = arg[1]
+local method = arg[2]
+local data = arg[3]
+
+if action == "call" then
+  local ret
+
+  check_param(method, data)
+  call_api(method, data)
+  os.exit(0)
+elseif action == "help" then
+  usage()
+else
+  exit("1", "method not found", "")
+end
+

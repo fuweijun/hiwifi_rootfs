@@ -1,13 +1,13 @@
 Package: kmod-rt2860v2_ap
-Version: 3.3.8-1
+Version: 3.3.8+r2716-6
 Depends: 
 Provides: 
-Source: package/kernel/linux
+Source: package/kernel/wifi/rt2860v2
 Section: kernel
-Status: unknown hold not-installed
+Status: unknown ok not-installed
 Essential: no
 Priority: optional
 Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
 Architecture: ralink
-Installed-Size: 672138
-Description:  Ralink Drivers for RT2860 cards (RT2860 PCI).
+Installed-Size: 657630
+Description:  This package contains a driver for MT7620

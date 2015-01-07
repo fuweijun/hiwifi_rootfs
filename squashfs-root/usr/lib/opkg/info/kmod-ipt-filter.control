@@ -9,7 +9,7 @@ Essential: no
 Priority: optional
 Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
 Architecture: ralink
-Installed-Size: 8240
+Installed-Size: 8242
 Description:  Netfilter (IPv4) kernel modules for packet content inspection
  Includes:
  - layer7

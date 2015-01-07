@@ -2,7 +2,7 @@ Package: hwf-cert
 Version: 0.0.1-20140701
 Depends: libc
 Provides: 
-Source: /home/build/hiwifi/branch/release0.9005/HC5661/package/hwf-cert
+Source: /ROOT/diskb/hiwifi/branch/release0.9007/HC5661/package/hwf-cert
 Section: net
 Status: unknown ok not-installed
 Essential: no

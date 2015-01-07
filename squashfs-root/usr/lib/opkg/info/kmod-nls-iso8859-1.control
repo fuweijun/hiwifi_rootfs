@@ -9,5 +9,5 @@ Essential: no
 Priority: optional
 Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
 Architecture: ralink
-Installed-Size: 1727
+Installed-Size: 1725
 Description:  Kernel module for NLS ISO 8859-1 (Latin 1)

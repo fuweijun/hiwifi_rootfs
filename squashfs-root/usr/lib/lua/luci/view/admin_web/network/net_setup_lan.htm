@@ -7,7 +7,7 @@
 
 local ver  = require "luci.version"
 local adv_menu = luci.util.get_adv_menu()
-local request_uri = luci.http.getenv("REQUEST_URI")
+local request_uri = luci.http.getenv_htmlencode("REQUEST_URI")
 %>
 <!DOCTYPE html>
 <html>
@@ -33,7 +33,7 @@ local request_uri = luci.http.getenv("REQUEST_URI")
 	<h2>高级设置<i>设置路由器安全 , 及其他高级设置</i></h2>
 </div>
 <div class="menu">
-	<% luci.util.output_adv_menu() %>
+	<% include("admin_web/menu/adv_menu") %>
 </div>
 
 <div class="box setup_box">
@@ -68,7 +68,7 @@ local request_uri = luci.http.getenv("REQUEST_URI")
 					<td><a href="javascript:window.parent.open_windows('set_wifi');">- 无线设置</a></td>
 				</tr>
 				<tr>
-					<td><a href="<%=luci.dispatcher.build_url("admin_web","system","upgrade")%>">- 固件自动升级</a></td>
+					<td><a href="<%=luci.dispatcher.build_url("admin_web","system","upgrade")%>">- 固件自助升级</a></td>
 					<td><a href="javascript:window.parent.open_windows('set_network');">- 无线中继</a></td>
 				</tr>
 				<tr>
@@ -103,6 +103,20 @@ function autoHeight(){
         }  
     }  
 }
+
+var validate_lan_ip = function(v) {
+    if( v.match(/^(\d+)\.(\d+)\.(\d+)\.(\d+)$/) )
+    {
+        return (RegExp.$1 >= 0) && (RegExp.$1 <= 255) &&
+               (RegExp.$2 >= 0) && (RegExp.$2 <= 255) &&
+               (RegExp.$3 >= 0) && (RegExp.$3 <= 255) &&
+               (RegExp.$4 >= 0) && (RegExp.$4 <= 255)
+        ;
+    }
+
+    return false;
+}
+
 $(function(){
 	//autoHeight();
 
@@ -130,6 +144,11 @@ $(function(){
 	
 	//提交
 	$("#submit_btn").click(function(){
+	    var lan_ip = $("input[name='ip']").val()
+	    if(!validate_lan_ip(lan_ip)){
+    	    art.dialog({icon:"error",title:false,content:'<%:IP 地址格式不正确%>'}).lock().time(4);
+    	    return;
+	    }
 		
 		$("#loading2").show();
 		$("#submit_btn").attr("disabled",true);

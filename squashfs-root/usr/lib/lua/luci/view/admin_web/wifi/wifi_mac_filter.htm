@@ -7,7 +7,7 @@
 
 local ver  = require "luci.version"
 local adv_menu = luci.util.get_adv_menu()
-local request_uri = luci.http.getenv("REQUEST_URI")
+local request_uri = luci.http.getenv_htmlencode("REQUEST_URI")
 %> 
 <!DOCTYPE html>
 <html>
@@ -36,6 +36,12 @@ local request_uri = luci.http.getenv("REQUEST_URI")
 		border-width: 2px;
 	}
 	.onlinedev{font-size:12px;text-align: left;text-indent: 35px}
+	.control_type{
+	   font-size: 14px;
+	}
+	.item-txt .notice{
+        color: #d84613;
+    }
 </style>
 </head>
 <body>
@@ -43,20 +49,25 @@ local request_uri = luci.http.getenv("REQUEST_URI")
 	<h2>高级设置<i>设置路由器安全 , 及其他高级设置</i></h2>
 </div>
 <div class="menu">
-	<% luci.util.output_adv_menu() %>
+	<% include("admin_web/menu/adv_menu") %>
 </div>
 <div class="box setup_box">
 	<form id="form1"> 
 		<div class="area">
 			<div class="group">
 				<h4 class="item-title" style="margin-bottom:20px;">无线 MAC 地址访问控制</h4>
-				<p class="item-txt"><span class="on-off" style="font-size:14px;">开关<button type="button" class="on" style="margin-left:20px;">开关</button></span></p>
+				<p class="item-txt">
+				    <span class="on-off" style="font-size:14px;">开关<button type="button" class="on" style="margin-left:20px;">开关</button></span>
+				    <span id="choose_type_notice" class="notice"></span>
+				</p>
 			</div>
 			<div class="group" id="ra_box_info" >
 				<p class="item-txt" id="ra_box_info2">读取中...</p>
 			</div>
 			<div class="group" style="display:none;" id="ra_box">
-				<p class="item-txt"><span>
+				<p class="item-txt">
+				<label class="control_type"><%:限制类型：%></label>
+				<span>
 				<input id="ra_stop" style="display:none;" type="radio" name="status" value="stop" />
 				<input id="ra_allow" type="radio" name="status" value="allow" class="stop_disabled"/>
 				<label for="ra_allow" class="label"> 允许以下MAC地址访问</label></span>
@@ -104,6 +115,7 @@ function submit_from(){
 				
 				if(rsp.code == 0){
 					window.parent.art.dialog({icon:"succeed",title:false,content:"设置成功! "+rsp.msg}).lock().time(4);
+					$("#choose_type_notice").text("");
 				} else {
 					art.dialog({icon:"error",title:false,content:rsp.msg}).lock().time(4);
 				}
@@ -259,6 +271,7 @@ $(function(){
 	
 	//开关
 	$(".on-off").click(function(){
+	    $("#choose_type_notice").text("");
 		var switch_b = $(this).children("button");
 		var status_now = switch_b.attr("class");
 		if(status_now == "on"){
@@ -289,6 +302,7 @@ $(function(){
 						//去重复
 						rsp.macs = rsp.macs.del();
 						make_input_boxs(rsp.macs);
+    					$("#choose_type_notice").text("<%:请选择限制类型，点击保存后生效%>");
 					} else {
 						make_input_boxs(rsp.macs);
 					}

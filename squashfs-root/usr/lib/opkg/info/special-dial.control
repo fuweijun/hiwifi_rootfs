@@ -9,5 +9,5 @@ Essential: no
 Priority: optional
 Maintainer: Duke Wu <duke.wu@hiwifi.tw>
 Architecture: all
-Installed-Size: 7430
+Installed-Size: 7413
 Description:  Provide supporting for PPPoE special dialing in some region.

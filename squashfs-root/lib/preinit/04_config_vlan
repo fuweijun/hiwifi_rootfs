@@ -16,6 +16,9 @@ preinit_config_vlan() {
 	BL-H750AC)
 		configEsw LLLLW
 		;;
+	ZC-9527)
+		configEsw LLLLL
+		;;
 	*)
 		configEsw WLLLL
 		;;
@@ -111,6 +114,17 @@ config_mt7620_esw()
 		switch vlan set 0 1 01111111
 		switch vlan set 1 2 00000011
 		switch vlan set 2 3 10000011
+	elif [ "$1" = "LLLLL" ]; then
+		#set PVID
+		switch reg w 2014 10001 #port0
+		switch reg w 2114 10001 #port1
+		switch reg w 2214 10001 #port2
+		switch reg w 2314 10001 #port3
+		switch reg w 2414 10001 #port4
+		switch reg w 2514 10001 #port5
+		#VLAN member port
+		switch vlan set 0 1 11111111
+		switch vlan set 1 2 00000011
 	fi
 
 	#clear mac table if vlan configuration changed

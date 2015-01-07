@@ -1,2 +1,7 @@
 /bin/opkg
+/etc/opkg.d/opkg-fast.conf
+/etc/opkg.d/opkg-fast-2.conf
+/etc/opkg.d/opkg-secure-2.conf
+/etc/opkg.d/opkg-fast-3.conf
 /etc/opkg.conf
+/etc/opkg.d/opkg-secure.conf

@@ -6,9 +6,9 @@
 ]]--
 
 local ver  = require "luci.version"
-local redirect = luci.http.formvalue("redirect")
-local code = luci.http.formvalue("code")
-local msg = luci.http.formvalue("msg")
+local redirect = luci.http.formvalue_htmlencode("redirect")
+local code = luci.http.formvalue_htmlencode("code")
+local msg = luci.http.formvalue_htmlencode("msg")
 local parm_other = ""
 if redirect == 1 or redirect == "1" then
 	local protocol = require "luci.http.protocol"

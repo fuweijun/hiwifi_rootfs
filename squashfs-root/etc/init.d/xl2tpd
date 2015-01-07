@@ -14,5 +14,8 @@ start() {
 }
 
 stop() {
-	[ -f $PID_F ] && kill $(cat $PID_F)
+	[ ! -f $PID_F ] && return 0
+	pid=$(cat $PID_F)
+	kill $pid
+	while [ -n "$(cat /proc/$pid/stat 2>/dev/null | grep $BIN)" ];do sleep 1;done
 }

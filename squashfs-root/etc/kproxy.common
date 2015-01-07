@@ -1,0 +1,296 @@
+#!/bin/sh
+
+METHOD=
+URI=
+PORT=
+ARGS=
+ACCEPT=
+ACCEPT_CHARSET=
+ACCEPT_ENCODING=
+ACCEPT_LANGUAGE=
+AUTHORIZATION=
+CACHE_CONTROL=
+CONNECTION=
+COOKIE=
+DATE=
+EXPECT=
+FROM=
+HOST=
+IF_MATCH=
+IF_MODIFIED_SINCE=
+IF_NONE_MATCH=
+IF_RANGE=
+IF_UNMODIFIED_SINCE=
+MAX_FORWARDS=
+PRAGMA=
+PROXY_AUTHORIZATION=
+RANGE=
+REFERER=
+TE=
+USER_AGENT=
+SIP=
+DIP=
+SPORT=
+DPORT=
+
+NOT_METHOD=
+NOT_URI=
+NOT_PORT=
+NOT_ARGS=
+NOT_ACCEPT=
+NOT_ACCEPT_CHARSET=
+NOT_ACCEPT_ENCODING=
+NOT_ACCEPT_LANGUAGE=
+NOT_AUTHORIZATION=
+NOT_CACHE_CONTROL=
+NOT_CONNECTION=
+NOT_COOKIE=
+NOT_DATE=
+NOT_EXPECT=
+NOT_FROM=
+NOT_HOST=
+NOT_IF_MATCH=
+NOT_IF_MODIFIED_SINCE=
+NOT_IF_NONE_MATCH=
+NOT_IF_RANGE=
+NOT_IF_UNMODIFIED_SINCE=
+NOT_MAX_FORWARDS=
+NOT_PRAGMA=
+NOT_PROXY_AUTHORIZATION=
+NOT_RANGE=
+NOT_REFERER=
+NOT_TE=
+NOT_USER_AGENT=
+NOT_SIP=
+NOT_DIP=
+NOT_SPORT=
+NOT_DPORT=
+
+RULE=
+
+kproxy_rule_unset()
+{
+	METHOD=
+	URI=
+	PORT=
+	ARGS=
+	ACCEPT=
+	ACCEPT_CHARSET=
+	ACCEPT_ENCODING=
+	ACCEPT_LANGUAGE=
+	AUTHORIZATION=
+	CACHE_CONTROL=
+	CONNECTION=
+	COOKIE=
+	DATE=
+	EXPECT=
+	FROM=
+	HOST=
+	IF_MATCH=
+	IF_MODIFIED_SINCE=
+	IF_NONE_MATCH=
+	IF_RANGE=
+	IF_UNMODIFIED_SINCE=
+	MAX_FORWARDS=
+	PRAGMA=
+	PROXY_AUTHORIZATION=
+	RANGE=
+	REFERER=
+	TE=
+	USER_AGENT=
+	SIP=
+	DIP=
+	SPORT=
+	DPORT=
+	
+	NOT_METHOD=
+	NOT_URI=
+	NOT_PORT=
+	NOT_ARGS=
+	NOT_ACCEPT=
+	NOT_ACCEPT_CHARSET=
+	NOT_ACCEPT_ENCODING=
+	NOT_ACCEPT_LANGUAGE=
+	NOT_AUTHORIZATION=
+	NOT_CACHE_CONTROL=
+	NOT_CONNECTION=
+	NOT_COOKIE=
+	NOT_DATE=
+	NOT_EXPECT=
+	NOT_FROM=
+	NOT_HOST=
+	NOT_IF_MATCH=
+	NOT_IF_MODIFIED_SINCE=
+	NOT_IF_NONE_MATCH=
+	NOT_IF_RANGE=
+	NOT_IF_UNMODIFIED_SINCE=
+	NOT_MAX_FORWARDS=
+	NOT_PRAGMA=
+	NOT_PROXY_AUTHORIZATION=
+	NOT_RANGE=
+	NOT_REFERER=
+	NOT_TE=
+	NOT_USER_AGENT=
+	NOT_SIP=
+	NOT_DIP=
+	NOT_SPORT=
+	NOT_DPORT=
+	
+	RULE=
+
+}
+
+kproxy_rule_add()
+{
+	if [ 2 != $# ];then
+		return 1
+	fi
+	
+	case $1 in
+	"HOST")
+	  if [ -z "$HOST" ];then
+	          HOST="\""$2"\""
+	  else
+	          HOST=$HOST",\""$2"\""
+	  fi
+	  ;;
+	"DPORT")
+	  if [ -z "$DPORT" ];then
+	          DPORT="\""$2"\""
+	  else
+	          DPORT=$DPORT",\""$2"\""
+	  fi
+	  ;;
+	"NOT_HOST")
+	  if [ -z "$NOT_HOST" ];then
+	          NOT_HOST="\""$2"\""
+	  else
+	          NOT_HOST=$NOT_HOST",\""$2"\""
+	  fi
+	  ;;
+	"NOT_DPORT")
+	  if [ -z "$NOT_DPORT" ];then
+	          NOT_DPORT="\""$2"\""
+	  else
+	          NOT_DPORT=$NOT_DPORT",\""$2"\""
+	  fi
+	  ;;	  
+	*)
+		return 1
+		;;
+	esac
+	
+	return 0
+}
+
+kproxy_rule_get()
+{
+	RULE="{"
+	
+	if [ -n "$HOST" ];then
+		HOST="\"HOST\":["$HOST"]"
+		
+		if [ "{" = "$RULE" ];then
+			RULE=$RULE$HOST
+		else
+			RULE=$RULE","$HOST
+		fi
+	fi
+	
+	if [ -n "$NOT_HOST" ];then
+		NOT_HOST="\"NOT_HOST\":["$NOT_HOST"]"
+		
+		if [ "{" = "$RULE" ];then
+			RULE=$RULE$NOT_HOST
+		else
+			RULE=$RULE","$NOT_HOST
+		fi
+	fi
+		
+	if [ -n "$DPORT" ];then
+		DPORT="\"DPORT\":["$DPORT"]"
+ 
+		if [ "{" = "$RULE" ];then
+			RULE=$RULE$DPORT
+		else
+			RULE=$RULE","$DPORT
+		fi   
+	fi
+		
+	if [ -n "$NOT_DPORT" ];then
+		NOT_DPORT="\"NOT_DPORT\":["$NOT_DPORT"]"
+ 
+		if [ "{" = "$RULE" ];then
+			RULE=$RULE$NOT_DPORT
+		else
+			RULE=$RULE","$NOT_DPORT
+		fi
+	fi
+	
+	RULE=$RULE"}"
+	
+	return 0
+}
+
+
+kproxy_rule_ins_black()
+{
+	kproxy_rule_get
+	
+	kproxy-lua rules add $RULE 1
+	
+	kproxy_rule_unset
+}
+
+kproxy_rule_ins_white()
+{
+	kproxy_rule_get
+	
+	kproxy-lua rules add $RULE 0
+	
+	kproxy_rule_unset
+}
+
+kproxy_rule_del_black()
+{
+	kproxy_rule_get
+	
+	kproxy-lua rules del $RULE 1
+	
+	kproxy_rule_unset
+}
+
+kproxy_rule_del_white()
+{
+	kproxy_rule_get
+	
+	kproxy-lua rules del $RULE 0
+	
+	kproxy_rule_unset
+}
+
+kproxy_rule_list()
+{	
+	kproxy-lua rules list
+}
+
+kproxy_rule_clean()
+{	
+	kproxy-lua rules clean
+}
+
+kproxy_addrport_add()
+{	
+	kproxy-lua addrport add $1 $2 $3
+}
+
+kproxy_addrport_del()
+{	
+	kproxy-lua addrport del $1 $2 $3
+}
+
+kproxy_addrport_list()
+{	
+	kproxy-lua addrport list
+}
+

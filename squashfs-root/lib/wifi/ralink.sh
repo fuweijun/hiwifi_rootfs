@@ -299,15 +299,14 @@ enable_ralink() {
 			start_ralink_vif "$vif" "$ifname"
 			start_ralink_vif "$vif" "$ifname2"
 			set_wifi_up "$vif" "$ifname"
-			ifconfig $ifname up
 			ifconfig $ifname2 up 2>/dev/null
 		}
+		
+		ifconfig $ifname up
 	done
 
-	if [ ! -e "/etc/config/led_disable" ]; then
-		iwpriv ra0 set led=1
-		iwpriv rai0 set led=1 2>/dev/null
-	fi
+	iwpriv ra0 set led=1
+	iwpriv rai0 set led=1 2>/dev/null
 
 	[ $enwpad -eq 1 ] && wpad & 
 	 [ $repeater -eq 1 ] && [ $configured -eq 0 ] && {
@@ -335,19 +334,17 @@ disable_ralink() {
 		config_get ifname2 "$vif" ifname2
 		config_get network "$vif" network
 
-		[ "$network" = "wan" ] || {
-			ifconfig $ifname down 2>/dev/null
-			ifconfig $ifname2 down 2>/dev/null
+		ifconfig $ifname down 2>/dev/null
+		ifconfig $ifname2 down 2>/dev/null
 
-			brctl show | grep -qs "$ifname"
-			if [ $? -eq 0 ]; then
-				unbridge1 $ifname $network 2>/dev/null
-			fi
-			brctl show | grep -qs "$ifname2"
-			if [ $? -eq 0 ]; then
-				unbridge1 $ifname2 $network 2>/dev/null
-			fi
-		}
+		brctl show | grep -qs "$ifname"
+		if [ $? -eq 0 ]; then
+			unbridge1 $ifname $network 2>/dev/null
+		fi
+		brctl show | grep -qs "$ifname2"
+		if [ $? -eq 0 ]; then
+			unbridge1 $ifname2 $network 2>/dev/null
+		fi
 	done
 
 	return 0

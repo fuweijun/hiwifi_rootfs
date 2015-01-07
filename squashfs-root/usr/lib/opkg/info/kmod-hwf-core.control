@@ -1,13 +1,13 @@
 Package: kmod-hwf-core
-Version: 3.3.8+1.0.0-20140805
+Version: 3.3.8+1.0.0-20140813
 Depends: 
 Provides: 
-Source: /home/build/hiwifi/branch/release0.9005/HC5661/package/hwf-core
+Source: /ROOT/diskb/hiwifi/branch/release0.9007/HC5661/package/hwf-core
 Section: kernel
 Status: unknown ok not-installed
 Essential: no
 Priority: optional
 Maintainer: Chen Xu<chen.xu@hiwifi.tw>
 Architecture: ralink
-Installed-Size: 4183
+Installed-Size: 4195
 Description:  This package contains HiWiFi extensions.

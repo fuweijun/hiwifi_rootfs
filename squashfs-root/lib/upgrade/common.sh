@@ -1,6 +1,27 @@
 #!/bin/sh
 
 RAM_ROOT=/tmp/root
+SYSUPGRADE_LOG="/tmp/data/sysupgrade_log"
+
+sysupgrade_log() {
+	case "$1" in
+	"memory")
+		if [ -L /tmp/data ]; then
+			echo "sysupgrade: $@" >>$SYSUPGRADE_LOG
+			cat /proc/meminfo >>$SYSUPGRADE_LOG
+		else
+			echo "$@"
+		fi
+		;;
+	*)
+		if [ -L /tmp/data ]; then
+			echo "sysupgrade: $@" >>$SYSUPGRADE_LOG
+		else
+			echo "$@"
+		fi
+		;;
+	esac
+}
 
 ldd() { LD_TRACE_LOADED_OBJECTS=1 $*; }
 libs() { ldd $* | awk '{print $3}'; }
@@ -35,7 +56,7 @@ install_bin() { # <file> [ <symlink> ... ]
 
 pivot() { # <new_root> <old_root>
 	/bin/mount | grep "on $1 type" 2>&- 1>&- || /bin/mount -o bind $1 $1
-	mkdir -p $1$2 $1/proc $1/sys $1/dev $1/tmp $1/overlay && \
+	mkdir -p $1$2 $1/proc $1/sys $1/dev $1/tmp $1/var $1/overlay && \
 	/bin/mount -o noatime,move /proc $1/proc && \
 	pivot_root $1 $1$2 || {
        /bin/umount -l $1 $1
@@ -45,6 +66,7 @@ pivot() { # <new_root> <old_root>
 	/bin/mount -o noatime,move $2/sys /sys
 	/bin/mount -o noatime,move $2/dev /dev
 	/bin/mount -o noatime,move $2/tmp /tmp
+	/bin/mount -o noatime,move $2/var /var
 	/bin/mount -o noatime,move $2/overlay /overlay 2>&-
 	return 0
 }
@@ -58,18 +80,18 @@ run_ramfs() { # <command> [...]
 
 	install_bin /sbin/mtd
 	install_bin /sbin/setled
-	install_bin /bin/ps
-	install_bin /bin/dmesg
 	for file in $RAMFS_COPY_BIN; do
 		install_bin $file
 	done
 	install_file /etc/resolv.conf /lib/functions.sh /lib/functions.sh /lib/upgrade/*.sh $RAMFS_COPY_DATA
 
 	pivot $RAM_ROOT /mnt || {
-		echo "Failed to switch over to ramfs. Please reboot."
-		echo "Failed to switch over to ramfs. Please reboot." >>$SYSUPGRADE_LOG
+		sysupgrade_log "Failed to switch over to ramfs. Please reboot."
 		exit 1
 	}
+
+	# umount squashfs
+	umount /mnt/rom
 
 	/bin/mount -o remount,ro /mnt
 	/bin/umount -l /mnt
@@ -77,8 +99,19 @@ run_ramfs() { # <command> [...]
 	grep /overlay /proc/mounts > /dev/null && {
 		/bin/mount -o noatime,remount,ro /overlay
 		/bin/umount -l /overlay
+		# wait umount overlay
+		sleep 1
 	}
-	# wait for jffs2 kernel thread dead
+
+	# make sure overlay umounted
+	grep /overlay /proc/mounts > /dev/null && {
+		/bin/umount -f /overlay
+		sysupgrade_log "force umount overlay"
+	}
+
+	# clear caches and buffers
+	sync
+	echo 3 >/proc/sys/vm/drop_caches
 	sleep 1
 
 	# spawn a new shell from ramdisk to reduce the probability of cache issues
@@ -245,19 +278,11 @@ do_upgrade() {
 			jffs2_copy_config
 		fi
 	}
-	echo "Upgrade completed" >>$SYSUPGRADE_LOG
-	v "Upgrade completed"
-	echo "++++++TASK++++++" >>$SYSUPGRADE_LOG
-	ps >>$SYSUPGRADE_LOG
-	echo "++++++MEMINFO++++++" >>$SYSUPGRADE_LOG
-	cat /proc/meminfo >>$SYSUPGRADE_LOG
-	echo "++++++DMESG++++++" >>$SYSUPGRADE_LOG
-	dmesg >>$SYSUPGRADE_LOG
+	sysupgrade_log "Upgrade completed"
 
 	[ -n "$DELAY" ] && sleep "$DELAY"
 	ask_bool 1 "Reboot" && {
-		v "Rebooting system..."
-		echo "Rebooting system..." >>$SYSUPGRADE_LOG
+		sysupgrade_log "Rebooting system..."
 		sync
 		reboot -f
 		sleep 5

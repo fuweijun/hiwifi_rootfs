@@ -9,7 +9,7 @@ Essential: no
 Priority: optional
 Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
 Architecture: ralink
-Installed-Size: 284704
+Installed-Size: 284106
 Description:  This package contains essential ext2 filesystem utilities which consists of
  e2fsck, mke2fs, tune2fs, and most of the other core ext2
  filesystem utilities.

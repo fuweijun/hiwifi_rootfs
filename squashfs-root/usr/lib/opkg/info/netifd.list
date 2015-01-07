@@ -6,6 +6,7 @@
 /lib/netifd/dhcp.script
 /usr/share/udhcpc/default.script
 /lib/network/config.sh
+/lib/netifd/log_analysis.sh
 /etc/hotplug.d/iface/10-sysctl
 /sbin/netifd
 /sbin/devstatus

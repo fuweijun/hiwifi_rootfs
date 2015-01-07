@@ -3,7 +3,7 @@ local ver  = require "luci.version"
 local http = require "luci.http"
 local util  = require "luci.util"
 
-local autotype = util.fliter_unsafe(http.formvalue("autotype"))
+local autotype = http.formvalue_htmlencode("autotype")
 
 %>
 <!DOCTYPE html>
@@ -66,6 +66,7 @@ $(function(){
     
     $(".J_more").click(function(){
         $(".more").hide();
+        return false;
     })
 })
 </script>

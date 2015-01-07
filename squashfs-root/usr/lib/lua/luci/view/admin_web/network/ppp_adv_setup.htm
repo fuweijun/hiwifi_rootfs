@@ -8,7 +8,7 @@
 local ver  = require "luci.version"
 local wan_typeResp = luci.util.get_wan_contact_info()
 local adv_menu = luci.util.get_adv_menu()
-local request_uri = luci.http.getenv("REQUEST_URI")
+local request_uri = luci.http.getenv_htmlencode("REQUEST_URI")
 %>
 
 <!DOCTYPE html>
@@ -21,6 +21,7 @@ local request_uri = luci.http.getenv("REQUEST_URI")
 <script type="text/javascript" src="<%=resource%>/web/js/jquery-1.8.1.min.js?v=<%=ver.svnRevNum%>"></script>
 <script type="text/javascript" src="<%=resource%>/web/js/artDialog/jquery.artDialog.js?skin=blueskin"></script>
 <script src="<%=resource%>/web/js/artDialog/plugins/iframeTools.source.js?v=<%=ver.svnRevNum%>"></script>
+<script src="<%=resource%>/validators.min.js?v=<%=ver.svnRevNum%>"></script>
 </head>
 
 <style type="text/css">
@@ -34,7 +35,7 @@ local request_uri = luci.http.getenv("REQUEST_URI")
 	<h2>高级设置<i>设置路由器安全 , 及其他高级设置</i></h2>
 </div>
 <div class="menu">
-	<% luci.util.output_adv_menu() %>
+	<% include("admin_web/menu/adv_menu") %>
 </div>
 <div class="box setup_box">
 	<form id="form1"> 
@@ -98,6 +99,13 @@ $(function(){
 	
 	//提交
 	$("#submit_btn").click(function(){
+        
+        var lcp_failure_threshol = $("input[name='lcp_failure_threshol']").val();
+        lcp_failure_threshol_int = parseInt(lcp_failure_threshol);
+        if(!validators.uinteger(lcp_failure_threshol) || isNaN(lcp_failure_threshol_int) || lcp_failure_threshol_int < 0 || lcp_failure_threshol_int > 120){
+            art.dialog({icon:"error",title:false,content:"<%:LCP请求发送间隔 范围 0-120 秒%>"}).lock().time(4);
+            return;
+        }
 
 		$("#loading2").show();
 		$("#submit_btn").attr("disabled",true);

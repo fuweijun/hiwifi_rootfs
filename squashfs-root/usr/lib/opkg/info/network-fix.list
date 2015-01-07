@@ -1,2 +1,2 @@
 /bin/network-conflict-calc.sh
-/etc/udhcpc.user
+/etc/udhcpc.d/00-ip-chk.sh

@@ -32,7 +32,7 @@ proto_dhcp_setup() {
 	proto_run_command "$config" udhcpc \
 		-p /var/run/udhcpc-$iface.pid \
 		-s /lib/netifd/dhcp.script \
-		-f -t 0 -i "$iface" \
+		-R -a -f -t 0 -i "$iface" \
 		${ipaddr:+-r $ipaddr} \
 		${hostname:+-H $hostname} \
 		${clientid:+-x 0x3d:${clientid//:/}} \

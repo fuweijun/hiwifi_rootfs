@@ -9,5 +9,5 @@ Essential: no
 Priority: optional
 Maintainer: Duke Wu <duke.wu@ikwcn.com>
 Architecture: all
-Installed-Size: 4281
+Installed-Size: 4266
 Description:  Provide supporting for parsing hardcore board information.

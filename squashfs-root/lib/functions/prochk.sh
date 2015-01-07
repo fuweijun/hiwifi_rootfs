@@ -29,10 +29,10 @@ prochk_clean_old_coredumps()
 prochk_coredump()
 {
 	local prochk_cause=""
-        prochk_clean_old_coredumps
+	prochk_clean_old_coredumps
 
-        ls $HI_COREDUMP_PATH | grep '.*\.core\b' &> /dev/null
-        [[ $? -eq 0 ]] && { 
+	ls $HI_COREDUMP_PATH | grep '.*\.core\b' &> /dev/null
+	[[ $? -eq 0 ]] && { 
 
 		prochk_cause=$(ls -t $HI_COREDUMP_PATH | grep '.*\.core\b' | awk  -F "." 'BEGIN{num=1;str=""}{if (num <= 3 && !match(str, $1)){str=str$1"-";num++}} END{print str"core-"}')
 
@@ -72,7 +72,7 @@ prochk_process_netifd_is_numb()
 
 prochk_process_nginx_is_numb()
 {
-        prochk_process_is_numb_routine 'curl -o /dev/null  http://tw/ &> /dev/null'
+        prochk_process_is_numb_routine 'curl -o /dev/null  127.0.0.1  &> /dev/null'
 
         return $?
 }
@@ -84,6 +84,21 @@ prochk_process_fcgi_cgi_is_numb()
 
 prochk_process_inet_chk_sh_is_numb()
 {
+		local INETCHK_RUN_STAMP="/var/run/inetchk.stamp"
+		local stamp=""
+		local curr=""
+
+		curr=$(awk -F '.' '{print $1}' /proc/uptime 2> /dev/null)
+		[ $? -ne 0 ] && return 1
+
+		stamp=$(cat $INETCHK_RUN_STAMP)
+		[ $? -ne 0 ] && return 1
+
+		[ $((stamp + 600)) -lt "$curr" ] && {
+			echo "$curr" > $INETCHK_RUN_STAMP
+			logger -t inetchk "inet_chk numb at $(stamp) curr $curr"
+		}
+
         return 1
 }
 
@@ -98,6 +113,11 @@ prochk_process_ubusd_is_numb()
 }
 
 prochk_process_hotplug2_is_numb()
+{
+        return 1
+}
+
+prochk_process_rsyslogd_is_numb()
 {
         return 1
 }

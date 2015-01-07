@@ -1,0 +1,236 @@
+#!/usr/bin/lua
+
+package.cpath = package.cpath .. ";/usr/lib/?.so"
+
+local json = require "libluajsonc"
+
+local fun = require "kproxy"
+
+local util = require "luci.util"
+
+local file
+
+local jsontab
+
+local action
+
+local str
+
+local tab
+
+local tab2
+
+local ruleaction = {}
+
+local rule = {}
+
+local params = {}
+
+local queueIndex
+
+local lan
+
+local buffer
+
+local res = 0
+
+local namespace
+
+local keyset = {"METHOD", "URI", "PORT", "ARGS", "ACCEPT", "ACCEPT_CHARSET", "ACCEPT_ENCODING", "ACCEPT_LANGUAGE", "AUTHORIZATION",
+				"CACHE_CONTROL", "CONNECTION", "COOKIE", "DATE", "EXPECT", "FROM", "HOST", "IF_MATCH", "IF_MODIFIED_SINCE", "IF_NONE_MATCH",
+				"IF_RANGE", "IF_UNMODIFIED_SINCE", "MAX_FORWARDS", "PRAGMA", "PROXY_AUTHORIZATION", "RANGE", "REFERER", "TE", "USER_AGENT",
+				"SIP", "DIP", "SPORT", "DPORT",
+				"NOT_METHOD", "NOT_URI", "NOT_PORT", "NOT_ARGS", "NOT_ACCEPT", "NOT_ACCEPT_CHARSET", "NOT_ACCEPT_ENCODING", "NOT_ACCEPT_LANGUAGE", "NOT_AUTHORIZATION",
+				"NOT_CACHE_CONTROL", "NOT_CONNECTION", "NOT_COOKIE", "NOT_DATE", "NOT_EXPECT", "NOT_FROM", "NOT_HOST", "NOT_IF_MATCH", "NOT_IF_MODIFIED_SINCE", "NOT_IF_NONE_MATCH",
+				"NOT_IF_RANGE", "NOT_IF_UNMODIFIED_SINCE", "NOT_MAX_FORWARDS", "NOT_PRAGMA", "NOT_PROXY_AUTHORIZATION", "NOT_RANGE", "NOT_REFERER", "NOT_TE", "NOT_USER_AGENT",
+				"NOT_SIP", "NOT_DIP", "NOT_SPORT", "NOT_DPORT"}
+
+local cfgaction = {pass=0, nginx=1, syslog=2}
+
+local function checkip(ip)
+	local res = 0
+	_, count = string.gsub(ip, "%d+%.%d+%.%d+%.%d+", "")
+	if count == 1 then
+		res = 1
+	else
+		res = 0
+	end
+
+	return res
+end
+
+local function checkport(port)
+	local res = 0
+	local num = tonumber(port)
+	
+	if num == nil or num < 0 or num > 65535 then
+		res = 0
+	else
+		res = 1
+	end
+
+	return res
+end
+
+local function checkinset(key)
+	
+	for i,v in ipairs(keyset) do
+		if key == keyset[i] then
+			return 1
+		end
+	end	
+
+	return 0
+end
+
+local function tablesize(tab)
+	local res = 0
+	for i,v in ipairs(tab) do
+		if type(tab[i]) ~= "table" then
+			return 0
+		end
+		res = res + 1
+	end	
+
+	return res
+end
+
+local function entrysize(tab)
+	local res = 0
+	for i,v in ipairs(tab) do
+		if type(tab[i]) ~= "string" then
+			return 0
+		end
+		res = res + 1
+	end	
+
+	return res
+end
+
+local function check()
+	if table.getn(arg) ~= 1 then
+		error("Lack of filename!")
+		return
+	end
+
+	file = io.open(arg[1], "r")
+
+	if nil == file then
+		error("open file failed!")
+		return
+	end
+
+	buffer = file:read("*a")
+
+	if nil == buffer then
+		error("File is nil!")
+		file:close()
+		return
+	end
+
+	str = string.gsub(buffer, "%s", "")
+
+	file:close()
+
+	tab = json.decode(str)
+
+	if tab == nil then
+		error("json decode error!")
+		return
+	end
+
+	if tab["action_type"] ~= nil and cfgaction[tab["action_type"]] == nil then
+		error("action_type error!")	
+		return
+	end
+		
+	if tab["ip"] ~= nil and tab["port"] == nil then
+		error("port not exist!")
+		return		
+	end
+
+	if tab["ip"] ~= nil then
+		if type(tab["ip"]) ~= "string" or checkip(tab["ip"]) == 0 then
+			error("ip error!")
+			return		
+		end
+	end
+
+	if tab["port"] ~= nil then
+		if type(tab["port"]) ~= "string" or checkport(tab["port"]) == 0 then
+			error("port error!")
+			return	
+		end
+	end
+
+	if tab["lan"] ~= nil then
+		if type(tab["lan"]) ~= "string" or tonumber(tab["lan"]) == nil then
+			error("lan error!")
+			return	
+		end
+	end	
+
+	if tab["queue"] ~= nil then
+		if type(tab["queue"]) ~= "string" or tonumber(tab["queue"]) == nil then
+			error("queue error!")
+			return	
+		end
+	end	
+
+	if tab["rules"] == nil then
+		error("tab[\"rules\"] not exist!")
+		return			
+	end
+	
+	if tab["rules"] ~= nil then
+		if type(tab["rules"]) ~= "table" then
+			error("rules error!")
+			return	
+		end		
+		
+		if tablesize(tab["rules"]) == 0 then
+			error(string.format("tab[\"rules\"] is null or not table!", k))
+			return	
+		end
+		
+		for i,v in ipairs(tab["rules"]) do
+			if type(tab["rules"][i]) ~= "table" then
+				error(string.format("tab[\"rules\"][%d] not table!", i))
+				return	
+			end	
+
+			for k,v in pairs(tab["rules"][i]) do
+				if type(v) ~= "table" then
+					error(string.format("tab[\"rules\"][%d][%s] not table!", i, k))
+					return	
+				end		
+
+				if checkinset(k) == 0 then
+					error(string.format("tab[\"rules\"][%d][%s] error!", i, k))
+					return	
+				end
+
+				if entrysize(v) == 0 then
+					error(string.format("tab[\"rules\"][%d][%s] is null or not string!", i, k))
+					return	
+				end
+			end
+		end
+	end
+	
+end
+
+status, err = pcall(check)
+
+if status ~= true then
+	print(err)
+	res = 1
+end
+
+if res == 0 then
+	print("Check OK")
+else
+	print("Check failed")
+end
+
+os.exit(res)

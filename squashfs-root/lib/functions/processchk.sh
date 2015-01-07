@@ -67,6 +67,10 @@ processchk_restart()
                                 rv=$(/etc/init.d/boot restart 2>&1)
                                 healib_log      "restart $process:$rv"
                                 ;;
+								"rsyslogd")
+								rv=$(/etc/init.d/rsyslog restart 2>&1)
+								healib_log		"restart $process:$rv"
+								;;
                         esac
                 fi
         done

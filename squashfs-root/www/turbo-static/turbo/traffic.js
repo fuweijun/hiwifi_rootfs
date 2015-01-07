@@ -573,9 +573,9 @@ function switchDraw(n) {
 }
 function showColor() {
 	E('drawcolor').innerHTML = colors[drawColor][0] + ' &raquo;';
-	E('rx-name').style.borderBottom = '2px dashed '
+	E('rx-name').style.borderBottom = '2px solid '
 			+ colors[drawColor][1 + colorX];
-	E('tx-name').style.borderBottom = '2px dashed '
+	E('tx-name').style.borderBottom = '2px solid '
 			+ colors[drawColor][1 + (colorX ^ 1)];
 }
 function switchColor(rev) {

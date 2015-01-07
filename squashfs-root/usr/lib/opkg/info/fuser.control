@@ -1,0 +1,14 @@
+Package: fuser
+Version: 22.16-1
+Depends: libc
+Provides: 
+Source: /ROOT/diskb/hiwifi/branch/release0.9007/HC5661/feeds/fuser
+Section: utils
+Status: unknown ok not-installed
+Essential: no
+Priority: optional
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Architecture: ralink
+Installed-Size: 12042
+Description:  psmisc is a set of additional small useful utilities that use
+ the proc filesystem: fuser

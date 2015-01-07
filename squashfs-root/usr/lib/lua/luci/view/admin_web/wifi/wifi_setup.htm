@@ -9,8 +9,8 @@ local function normalize_mac(mac)
   return string.lower(string.gsub(mac,"-",":"))
 end
 
-local guide_mode = luci.http.formvalue("guide_mode")
-local remote_addr = luci.http.getenv("REMOTE_ADDR") 
+local guide_mode = luci.http.formvalue_htmlencode("guide_mode")
+local remote_addr = luci.http.getenv_htmlencode("REMOTE_ADDR") 
 local mac = luci.sys.net.ip4mac(remote_addr) or ""
 local wifi_status,wifi_device,wlanifname = luci.util.get_wifi_device_status()
 

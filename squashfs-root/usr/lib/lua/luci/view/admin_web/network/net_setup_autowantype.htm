@@ -5,7 +5,7 @@
 	Copyright	2012
 ]]--
 
-local guide_mode = luci.http.formvalue("guide_mode")
+local guide_mode = luci.http.formvalue_htmlencode("guide_mode")
 local is_conn = luci.util.is_internet_connect()
 local ver  = require "luci.version"
 %>

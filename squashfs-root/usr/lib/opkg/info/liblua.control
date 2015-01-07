@@ -9,7 +9,7 @@ Essential: no
 Priority: optional
 Maintainer: Jo-Philipp Wich <jow@openwrt.org>
 Architecture: ralink
-Installed-Size: 72586
+Installed-Size: 72569
 Description:  Lua is a powerful light-weight programming language designed for extending 
  applications. Lua is also frequently used as a general-purpose, stand-alone 
  language. Lua is free software.

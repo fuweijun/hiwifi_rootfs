@@ -1,5 +1,5 @@
 Package: miniupnpd
-Version: 1.8.20140422-20140715
+Version: 1.8.20140422-20141029
 Depends: libc, iptables, libip4tc, libip6tc, libnfnetlink
 Provides: 
 Source: package/network/services/miniupnpd
@@ -9,5 +9,5 @@ Essential: no
 Priority: optional
 Maintainer: Daniel Dickinson <openwrt@cshore.neomailbox.net>
 Architecture: ralink
-Installed-Size: 49399
+Installed-Size: 49924
 Description:  Lightweight UPnP daemon

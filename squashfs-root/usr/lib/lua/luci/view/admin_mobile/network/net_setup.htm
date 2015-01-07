@@ -6,7 +6,7 @@
 ]]--
 
 local is_conn = luci.util.is_internet_connect()
-local autotype = luci.http.formvalue("autotype")
+local autotype = luci.http.formvalue_htmlencode("autotype")
 local ver  = require "luci.version"
 
 -- 是否开启无线中继
@@ -817,7 +817,7 @@ function sta_reflash(){
 	$.getJSON("<%=luci.dispatcher.build_url("api", "wifi","wifi_ctl_scan")%>",request_date,function(rsp) 
 	{ 
 		if(rsp.code == 0){
-			setTimeout("fill_select();",3000);
+			setTimeout("fill_select();",5000);
 		}
 	})
 }

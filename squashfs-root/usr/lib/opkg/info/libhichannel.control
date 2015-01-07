@@ -1,0 +1,13 @@
+Package: libhichannel
+Version: 0.0.1-20140626
+Depends: libc, kmod-hwf-core, libiflua
+Provides: 
+Source: /ROOT/diskb/hiwifi/branch/release0.9007/HC5661/package/libhi-channel
+Section: libs
+Status: unknown ok not-installed
+Essential: no
+Priority: optional
+Maintainer: Liu guang <guang.liu@hiwifi.tw>
+Architecture: ralink
+Installed-Size: 2375
+Description:  Demon.

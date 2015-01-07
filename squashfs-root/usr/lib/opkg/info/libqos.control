@@ -1,13 +1,13 @@
 Package: libqos
-Version: 0.0.1-20140710
-Depends: libc, kmod-smartqos
+Version: 0.0.1-20140915
+Depends: libc
 Provides: 
-Source: /home/build/hiwifi/branch/release0.9005/HC5661/package/libqos
+Source: /ROOT/diskb/hiwifi/branch/release0.9007/HC5661/package/libqos
 Section: libs
 Status: unknown ok not-installed
 Essential: no
 Priority: optional
 Maintainer: Guo Baolong <baolong.guo@hiwifi.tw>
 Architecture: ralink
-Installed-Size: 1489
+Installed-Size: 1359
 Description:  libqos is used to set QoS priority of user's network traffic.

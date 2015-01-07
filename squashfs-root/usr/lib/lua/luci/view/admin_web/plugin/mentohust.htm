@@ -197,11 +197,6 @@ local http = require "luci.http"
 <script type="text/javascript" src="<%=resource%>/web/js/jquery-1.8.1.min.js?v=<%=ver.svnRevNum%>"></script>
 <script type="text/javascript" src="<%=resource%>/web/js/artDialog/jquery.artDialog.js?skin=blueskin"></script>
 <script src="<%=resource%>/web/js/artDialog/plugins/iframeTools.source.js?v=<%=ver.svnRevNum%>"></script>
-<style type="text/css">
-.setup_box{
-height:600px;
-}
-</style>
 </head>
 <style type="text/css">
 	table.zone td.tor{
@@ -217,6 +212,10 @@ height:600px;
 	.row p .txt {
 		margin-left: 120px;
 	}
+	.error-box {
+        color: #d84613;
+        font-size: 14px;
+    }
 </style>
 
 <%
@@ -230,16 +229,20 @@ end
 %>
 <body>
 <div class="title">
-	<h2>本地插件<i>更多扩展功能</i></h2>
+    <h2>高级设置<i>设置路由器安全 , 及其他高级设置</i></h2>
 </div>
 <div class="menu">
-	<a href="<%=luci.dispatcher.build_url("admin_web", "plugin","mentohust")%>" class="selected">锐捷认证</a>
-	<span class="pipe">|</span><a href="<%=luci.dispatcher.build_url("admin_web", "plugin","x3c")%>">华3认证</a>
+    <% include("admin_web/menu/adv_menu") %>
 </div>
 <div class="box setup_box">
 	<form  id="form1" action="<%=luci.dispatcher.build_url("admin_web", "plugin","mentohust")%>"  enctype="multipart/form-data"   method="post"> 
 <!-- <form id="form1">   -->	
-	<ul class="ullist"  style="position:relative">
+	<ul class="ullist"  style="position:relative;">
+	    <li class="memu row error-box">
+            <div class="info">
+                <p><%:温馨提示：本功能由第三方开发，仅支持锐捷的部分版本%></p>
+            </div>
+        </li>
 		<li>
 			<div class="memu row">
 				<p>

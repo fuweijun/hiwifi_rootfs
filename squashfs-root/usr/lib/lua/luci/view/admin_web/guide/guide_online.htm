@@ -9,7 +9,7 @@ local util = require "luci.util"
 
 local srcurl = luci.util.exec("cat /tmp/firstsrcurl 2>/dev/null")
 if srcurl ~= nil then
-    srcurl = luci.util.fliter_unsafe(luci.http.urlencode(srcurl))
+    srcurl = luci.http.urlencode(srcurl)
 end
 luci.util.exec("rm /tmp/guide_open_app 2>/dev/null")
 

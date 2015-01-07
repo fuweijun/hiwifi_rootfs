@@ -27,8 +27,8 @@
 	local ver  = require "luci.version"
 	local default_lan_ip = ver.default_lan_ip
 	
-	local act = http.formvalue("act")
-	local param = http.formvalue("param")
+	local act = http.formvalue_htmlencode("act")
+	local param = http.formvalue_htmlencode("param")
 	local wifi_status,wifi_device,wifi_ifname,wifi_ssid,wifi_encryption,wifi_channel,wifi_mode,wifi_ssidprefix = util.get_wifi_device_status()
 	local is_defult_password = luci.sys.user.checkpasswd("root", "admin")
 	
@@ -195,7 +195,7 @@ http.write(util.inc_html_header_end())
 			<a href="#"><span>►</span>已有<em><img src="<%=resource%>/web/js/artDialog/skins/icons/loading.gif" id="devices_loading" alt="连接设备数" border="0" style="position:relative; top:3px;"/></em>台设备连接到路由器</a>
 			</p>
 			<a href="#" id="reboot"><span>重启</span></a>
-			<div id="weixin_img"><img src="<%=resource%>/web/images/weixin.jpg" /></div>
+			<div id="weixin_img"><img src="<%=resource%>/web/images/weixin1.jpg" /></div>
 		</div>
 	</div>
 </div>
@@ -212,7 +212,7 @@ else
 			<span class="pipe">|</span><a href="<%=luci.i18n.translate("key_company_site")%>" target="_blank">官方网站</a>
 			<span class="pipe">|</span><a href="http://bbs.hiwifi.com/forum.php" target="_blank">极客社区</a>
 			<span class="pipe">|</span><a href="javascript:void();" id="weixin" target="_blank">官方微信</a>
-			<span class="pipe">|</span><a href="http://www.hiwifi.com/twxredirect/?type=products&mac=<%http.write(tw.get_mac())%>" target="_blank" id="buy"><img border="0" src="<%=resource%>/web/images/buy.png" alt="优惠购买" /></a>
+			<span class="pipe">|</span><a href="http://store.hiwifi.com/?from=twx&type=products&mac=<%http.write(tw.get_mac())%>" target="_blank" id="buy"><img border="0" src="<%=resource%>/web/images/buy.png" alt="优惠购买" /></a>
 			<span class="pipe">|</span><a href="javascript:switch_interface_type('mobile','<%=luci.dispatcher.build_url("admin_mobile")%>');">移动版界面</a>
 		</p>
 	</div>
@@ -243,6 +243,7 @@ end
 <script type="text/javascript">
 	var light_timer_arr = new Array();
 	var luci_url_base = "<%=luci.dispatcher.build_url("admin_web")%>/";
+	var CHECK_STORAGE_FOMART_STATE_BEFORE_RESET = false;
 	function is_internet_connect(){
 		var result = false;
 		var request_date = {}; 
@@ -379,7 +380,124 @@ end
 		}).lock();
 	}
 	
-	function reset_window(){
+	function get_sata_state_after_format(success_callback, fail_callback){
+	    if(CHECK_STORAGE_FOMART_STATE_BEFORE_RESET != true){
+	       return;
+	    }
+        var mill = now();
+        var request_data = {};
+        $.getJSON('<%=luci.dispatcher.build_url("api", "storage", "state")%>?'+mill,request_data,function(rsp) 
+        { 
+            var msg = rsp.msg;
+            var code = rsp.code;
+            var state = rsp.state;
+            var type = "";
+            if(rsp.data){
+                type = rsp.data.type;
+                if(code == 0 || code == "0"){
+                    if(type != 'NULL'){
+                        if(state == "mounted"){
+                            if(typeof(success_callback) == "function"){
+                                success_callback();
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+            if(typeof(fail_callback) == "function"){
+                fail_callback(rsp);
+            }
+            setTimeout(function(){
+                get_sata_state_after_format(success_callback, fail_callback);
+            }, 3000);
+        })
+        .fail(function(rsp){
+            if(typeof(fail_callback) == "function"){
+                fail_callback(rsp);
+            }
+            setTimeout(function(){
+                get_sata_state_after_format(success_callback, fail_callback);
+            }, 3000);
+        });
+    }
+	
+	function do_format_disk(callback){
+       var request_data = {'key':'i_agree_fdisk', 'force':'1'};
+       $.post('<%=luci.dispatcher.build_url("api", "storage", "format")%>', request_data, function(rsp){
+            var msg = rsp.msg;
+            var code = rsp.code;
+            if(code == 0 || code == "0"){
+                art.dialog({id:"wating_box",icon:"wait",title:false,content:'<%:正在格式化%>'}).lock();
+                
+                var time_ts = (+new Date());
+                var interval = window.setInterval(function() {
+                    var usetime = Math.round(((+new Date()) - time_ts)/1000);
+                    art.dialog.list['wating_box'].content("<%:正在格式化%>, <%:用时%>"+usetime+i18_second);
+                }, 5000);
+                
+                CHECK_STORAGE_FOMART_STATE_BEFORE_RESET = true;
+                setTimeout(function(){
+                    var begin_check_time = new Date().getTime();
+                    get_sata_state_after_format(function(){
+                        window.clearInterval(interval);
+                        begin_check_time = null;
+                        CHECK_STORAGE_FOMART_STATE_BEFORE_RESET = false;
+                        if(art && art.dialog.list['wating_box']){
+                            art.dialog.list['wating_box'].close();
+                        }
+                        if(callback.success){
+                            callback.success();
+                        }
+                    }, function(rsp){
+                        var fail_time = new Date().getTime();
+                        if(begin_check_time != null){
+                            if(fail_time - begin_check_time > 180000){
+                                if(rsp.data){
+                                    var type = rsp.data.type;
+                                    var timeout_msg = ""
+                                    if(type == "SD"){
+                                        timeout_msg = '<%:SD卡长时间未响应，请检查是否插好，然后重试%>';
+                                    }else if(type == "SATA"){
+                                        timeout_msg = '<%:SATA硬盘长时间未响应，请检查是否插好，然后重试%>';
+                                    }else{
+                                        timeout_msg = '<%:格式化超时，请检查是否插好，然后重试%>';
+                                    }
+                                    window.clearInterval(interval);
+                                    begin_check_time = null;
+                                    CHECK_STORAGE_FOMART_STATE_BEFORE_RESET = false;
+                                    if(art && art.dialog.list['wating_box']){
+                                        art.dialog.list['wating_box'].content(timeout_msg);
+                                    }
+                                }
+                            }
+                        }
+                    })
+                }, 10000);
+            }else{
+                alert(msg);
+            }
+       }, "json")
+       .error(function() {
+            alert("<%:系统忙，请稍后重试%>"); 
+       });
+	}
+	
+	function reset(){
+	    global_dorestart("<%:恢复出厂设置%>","<%=default_lan_ip%>",true);
+        
+        $.getJSON("<%=luci.dispatcher.build_url("api", "system","reset_all")%>",{},function(rsp) 
+        {
+            if(rsp.code==0){
+                
+            }  else {
+                art.dialog({icon:"error",title:false,content:"<%:恢复出厂设置失败%>"}).lock().time(4);
+                this.close();
+            }
+        });
+	}
+	
+	function reset_window(format_disk){
 		art.dialog({
 			title:false,
 		    content: '是否确定恢复出厂设置，将断开和路由器的连接！',
@@ -388,17 +506,14 @@ end
 		    ok: function(){
 		    	
 		    	this.close();
-		    	global_dorestart("恢复出厂设置","<%=default_lan_ip%>",true);
 		    	
-		    	$.getJSON("<%=luci.dispatcher.build_url("api", "system","reset_all")%>",{},function(rsp) 
-		    	{
-		    		if(rsp.code==0){
-		    			
-		    		}  else {
-		    			art.dialog({icon:"error",title:false,content:"恢复出厂设置失败"}).lock().time(4);
-			    		this.close();
-		    		}
-		    	});
+		    	if(format_disk == "1"){
+		    	   do_format_disk({success:function(){
+		    	        reset();
+		    	   }})
+		    	}else{
+    		    	reset();
+		    	}
 		        return false;
 		    },
 		    okVal: "恢复出厂设置", 
@@ -436,7 +551,7 @@ end
         		art.dialog.open('<%=luci.dispatcher.build_url("admin_web", "network","setup","lan")%>', {id:"func_box", title: '高级设置',width:780, height:590, lock:true,drag: false});
         	}
         } else  if (act=="system_config") {
-			art.dialog.open('<%=luci.dispatcher.build_url("admin_web","system")%>', {id:"func_box", title: '修改密码',width:500, height:450, lock:true,drag: false});
+			art.dialog.open('<%=luci.dispatcher.build_url("admin_web","system", "setup")%>', {id:"func_box", title: '修改密码',width:500, height:450, lock:true,drag: false});
         } else  if (act=="system_plug") {
 			art.dialog.open('<%=luci.dispatcher.build_url("admin_web","plugin","mentohust")%>', {id:"func_box", title: '插件',width:780, height:520, lock:true,drag: false});
         } else  if (act=="devices") {
@@ -471,6 +586,18 @@ end
             art.dialog.open('<%=luci.dispatcher.build_url("admin_web","system","sd_manual_part")%>', {id:"func_box", title: '格式化SD卡',width:560, height:490, lock:true,drag: false});
         } else if (act=="system_sata_manual_part"){
             art.dialog.open('<%=luci.dispatcher.build_url("admin_web","system","sata_manual_part")%>', {id:"func_box", title: '格式化硬盘',width:560, height:490, lock:true,drag: false});
+        } else if (act=="qos_setup"){
+            var start_test = '';
+            if(param && param.start_test == 1){
+                start_test = 1;
+            }
+            art.dialog.open('<%=luci.dispatcher.build_url("admin_web","qos","setup")%>?start_test='+start_test, {id:"func_box", title: '设置qos',width:780, height:570, lock:true,drag: false});
+        } else if (act=="reboot"){
+            reboot_window();
+        } else if (act=="mentohust"){
+            art.dialog.open('<%=luci.dispatcher.build_url("admin_web","plugin","mentohust")%>', {id:"func_box", title: '<%:锐捷认证%>',width:780, height:570, lock:true,drag: false});
+        } else if (act=="x3c"){
+            art.dialog.open('<%=luci.dispatcher.build_url("admin_web","plugin","x3c")%>', {id:"func_box", title: '<%:华三认证%>',width:780, height:570, lock:true,drag: false});
         }
 	}
 </script>
@@ -633,24 +760,6 @@ function light_flash(index){
 	} else {
 		$("#lan"+index).addClass("lightning");
 	}
-}
-
-function getDeviceInfo(success_callback, fail_callback){
-	//wifi/get_connected_devices_list 
-	$.getJSON("<%=luci.dispatcher.build_url("api", "network","device_list")%>",{},function(rsp) 
-	{ 
-		if(rsp.code == 0){
-			set_devices_cnt(rsp.devices.length);
-		}
-		if(typeof(success_callback) == "function"){
-            success_callback();
-        }
-	})
-	.fail(function(rsp){
-        if(typeof(fail_callback) == "function"){
-            fail_callback();
-        }
-    });
 }
 
 function getWanInfo(){
@@ -885,7 +994,22 @@ $(function(){
     window.onblur = function(){
         isFocus = false;
     }
+    
+    check_notice();
 })
+
+function check_notice(){
+    var request_date = {}; 
+    $.getJSON("<%=luci.dispatcher.build_url("api", "notice","check")%>",request_date,function(rsp) 
+    {
+        if(rsp.code == 0){
+            var data = rsp.data;
+            if(data.hasnew == true){
+                art.dialog.open('<%=luci.dispatcher.build_url("admin_web","notice","index")%>', {id:"notice_box", title: '通知中心',width:560, height:240, lock:true,drag: false});
+            }
+        }
+    })
+}
 
 function check_storage_state(){
     if(lock_map['get_sata_state'] != true){
@@ -910,17 +1034,6 @@ function check_status(){
             	lock_map['check_network_status'] = false;
             });
         lock_map['check_network_status'] = true;
-    }
-    if(lock_map['getDeviceInfo'] != true){
-        setTimeout(function(){
-            getDeviceInfo(function(){
-            	lock_map['getDeviceInfo'] = false;
-            },
-            function(){
-            	lock_map['getDeviceInfo'] = false;
-            });
-        }, 3000);
-        lock_map['getDeviceInfo'] = true;
     }
     setTimeout(function(){
         check_storage_state();
@@ -1118,6 +1231,11 @@ function get_sata_state(success_callback, fail_callback){
                             sd_error = true;
                         }
                     }, 120000);
+                }else if(state == "lock"){
+                    $(".sd-error-tip").removeClass("yellow").addClass("yellow");
+                    $("#sd_info").html("扩展存储为只读模式");
+                    $("#sd_icon").addClass("icon-i").removeClass("icon-i-y");
+                    $(".sd-error-tip").show();
                 }
             }
         }

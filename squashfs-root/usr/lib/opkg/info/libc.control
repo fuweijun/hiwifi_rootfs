@@ -9,5 +9,5 @@ Essential: yes
 Priority: optional
 Maintainer: Felix Fietkau <nbd@openwrt.org>
 Architecture: ralink
-Installed-Size: 224742
+Installed-Size: 224732
 Description:  C library

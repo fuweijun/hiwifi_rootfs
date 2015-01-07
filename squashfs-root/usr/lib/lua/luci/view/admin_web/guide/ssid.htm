@@ -41,7 +41,7 @@ local guide_open_app = luci.util.exec("cat /tmp/guide_open_app 2>/dev/null")
                     <tr>
                         <th class="text-th" style="height:60px;line-height:60px;">无线名称：</th>
                         <td>
-                            <input id="ssid_input" type="text" class="txt radius J_ssid" maxLength="32" minLength="1" value="<%=wifi_ssid%>" name="ssid" style="display:none" />
+                            <input id="ssid_input" type="text" class="txt radius J_ssid" maxLength="100" minLength="1" value="<%=wifi_ssid%>" name="ssid" style="display:none" />
                             <div id="change_ssid_view">
                                 <%=wifi_ssid%>&nbsp;<a id="change_ssid" href="javascript:void();return false;">修改</a>
                             </div>
@@ -51,7 +51,7 @@ local guide_open_app = luci.util.exec("cat /tmp/guide_open_app 2>/dev/null")
                     <tr>
                         <th>密　　码：</th>
                         <td>
-                            <input type="text" class="txt radius J_ssid_key J_pw" blank="true" maxLength="63" minLength="8" name="key" />
+                            <input type="text" class="txt radius J_ssid_key J_pw" blank="true" maxLength="100" minLength="8" name="key" />
                             <div class="tip-bar">至少8位，区分大小写</div>
                             <div class="error" style="display: none">密码错误，请重新输入</div>
                         </td>
@@ -97,19 +97,23 @@ $(function(){
     
     $("#complete_btn").click(function(){
         to_admin();
+        return false;
     });
     
     listerenterkeydown(function(){
         form_submit();
+        return false;
     });
     
     $("#submit_btn").click(function(){
         form_submit();
+        return false;
     });
     
     $("#change_ssid").click(function(){
         $("#ssid_input").show();
         $("#change_ssid_view").hide();
+        return false;
     });
 });
 
@@ -128,10 +132,8 @@ function form_submit(){
     saving = true;
     
     new_ssid = $("input[name='ssid']").val();
-    new_ssid = $.trim(new_ssid);
     new_ssid = removeHtmlTag(new_ssid);
     $("input[name='ssid']").val(new_ssid);
-    $("input[name='key']").val($.trim($("input[name='key']").val()))
     var wifi_password = $("input[name='key']").val();
     if(HaveChineseStr(wifi_password)){
         $(".error").html('密码只能使用英文符号及数字');
@@ -213,6 +215,7 @@ function update_btn(){
 
 function to_admin(){
     window.location = '<%=luci.dispatcher.build_url("admin_web", "guide", "admin")%>';
+    return false;
 }
 
 </script>   

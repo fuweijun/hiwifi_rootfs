@@ -19,7 +19,7 @@ gather_kpanic()
         local version=""
         local MAC="$(source /lib/platform.sh;tw_get_mac)"
         local timestamp="$(date +%Y%m%d%H%M%S)"
-	local kpanic_path="$HI_KPANIC_TGZ_PATH"
+		local kpanic_path="$HI_KPANIC_TGZ_PATH"
 
         mkdir -p  $HI_KPANIC_TGZ_PATH
         [[ $? -ne 0 ]] && return 1
@@ -33,8 +33,8 @@ gather_kpanic()
 
 		mkdir -p $HI_KPANIC_DB_PATH/$name
                 [[ $? -ne 0 ]] && return 2
-
                 mv $HI_KPANIC_FILE $HI_KPANIC_DB_PATH/$name/$name.log
+
 		mv /tmp/data/mtd_log_firmware-* $HI_KPANIC_DB_PATH/$name
 		mv /tmp/data/sysupgrade_log-*  $HI_KPANIC_DB_PATH/$name
 
@@ -80,17 +80,25 @@ backup_kpanic()
 ###################################
 upload_kpanic()
 {
-        local ktgz=""
-        local ktgzs=""
+	local ktgz=""
+	local ktgzs=""
+	local kversion=""
+	local tarname=""
 
-        for tgz in $(ls -t $HI_KPANIC_TGZ_PATH/*.tgz 2> /dev/null);do
-                upload_data $tgz
-                if [ $? -eq 109 ];then
-                        return 1
+	for tgz in $(ls -t $HI_KPANIC_TGZ_PATH/*.tgz 2> /dev/null);do
+		tarname=$(basename $tgz)
+		kversion=$(echo $tarname | grep -oE '[0-9]\.[0-9]{4,}\.[0-9]{4,}s')
+		if [ $? -ne 0 ]; then
+			kversion="unknown"
+		fi
+
+		upload_data $tgz "hwf-health-chk" $kversion
+		if [ $? -eq 109 ]; then
+				return 1
 		else
 			rm -f $tgz
-                fi
-        done
+		fi
+	done
 
-        return 0
+	return 0
 }

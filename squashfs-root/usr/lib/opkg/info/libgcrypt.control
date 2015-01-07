@@ -2,14 +2,14 @@ Package: libgcrypt
 Version: 1.5.0-1
 Depends: libc, libgpg-error
 Provides: 
-Source: /home/build/hiwifi/branch/release0.9005/HC5661/feeds/libgcrypt
+Source: /ROOT/diskb/hiwifi/branch/release0.9007/HC5661/feeds/libgcrypt
 Section: libs
 Status: unknown ok not-installed
 Essential: no
 Priority: optional
 Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
 Architecture: ralink
-Installed-Size: 158590
+Installed-Size: 159997
 Description:  This is a general purpose cryptographic library based on the code from
  GnuPG. It provides functions for all cryptograhic building blocks:
  symmetric ciphers (AES, DES, Arcfour, CAST5), hash algorithms (MD5, SHA-1,

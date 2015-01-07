@@ -37,16 +37,14 @@ local ver  = require "luci.version"
 </body>
 <script type="text/javascript">
 $(function(){
-    var internet_check_page_html = '';
-    update_backup_info();
-    cache_internet_check_html();
+    function to_restore_complete(){
+        window.location.href = "<%=luci.dispatcher.build_url("admin_web", "guide","restore_complete")%>";
+        return false;
+    }
 
     $("#start_install").click(function(){
-        if(has_internet_check_page_html()){
-            $("html").html(internet_check_page_html);
-        }else{
-            window.location = "<%=luci.dispatcher.build_url("admin_web", "guide", "internet_check")%>";
-        }
+        window.location = "<%=luci.dispatcher.build_url("admin_web", "guide", "internet_check")%>";
+        return false;
     });
 
     $("#restore_btn").click(function(){
@@ -61,6 +59,7 @@ $(function(){
              }
             }
          ,"json");
+         return false;
     });
     
     function update_backup_info(){
@@ -74,25 +73,8 @@ $(function(){
             }
          );
     }
-
-    function cache_internet_check_html(){
-        $.post("<%=luci.dispatcher.build_url("admin_web", "guide", "internet_check")%>", {},
-            function(rsp){
-             internet_check_page_html = rsp;
-            }
-         );
-    }
-
-    function has_internet_check_page_html(){
-        return internet_check_page_html &&
-            internet_check_page_html != '' &&
-            internet_check_page_html.indexOf("</html>") > -1;
-    }
     
-    function to_restore_complete(){
-        window.location.href = "<%=luci.dispatcher.build_url("admin_web", "guide","restore_complete")%>";
-    }
-    
+    update_backup_info();
 })
 </script>
 </html>

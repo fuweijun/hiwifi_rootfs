@@ -1,6 +1,6 @@
 <%
 local ver  = require "luci.version"
-local nettype = luci.util.fliter_unsafe(luci.http.urlencode(luci.http.formvalue("nettype")))
+local nettype = luci.http.urlencode(luci.http.formvalue_htmlencode("nettype"))
 %>
 <!DOCTYPE html>
 <html>
@@ -70,6 +70,7 @@ function set_status_box(link,conn){
         $("#btn_next").show();
         $("#btn_next").click(function(){
             window.location.href='<%=luci.dispatcher.build_url("admin_web", "guide", "wisp")%>';
+            return false;
         });
         $("#btn_ok").html('网线未连接');
         $("#btn_ok").addClass('disabled');
@@ -83,6 +84,7 @@ function set_status_box(link,conn){
         $("#btn_ok").removeClass('disabled');
         $("#btn_ok").click(function(){
             window.location.href='<%=luci.dispatcher.build_url("admin_web", "guide", "internet_check")%>';
+            return false;
         });
     }
 }

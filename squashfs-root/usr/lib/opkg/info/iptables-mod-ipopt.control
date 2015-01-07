@@ -1,5 +1,5 @@
 Package: iptables-mod-ipopt
-Version: 1.4.10-4
+Version: 1.4.10-20140924
 Depends: libc, iptables, kmod-ipt-ipopt
 Provides: 
 Source: package/network/utils/iptables
@@ -9,7 +9,7 @@ Essential: no
 Priority: optional
 Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
 Architecture: ralink
-Installed-Size: 20850
+Installed-Size: 21392
 Description:  iptables extensions for matching/changing IP packet options.
  
  Matches:
@@ -28,5 +28,6 @@ Description:  iptables extensions for matching/changing IP packet options.
  - CLASSIFY
  - ECN
  - MARK
+ - QOSMARK
  - HL
  

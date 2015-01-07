@@ -6,8 +6,8 @@ local http = require "luci.http"
 local tw = require "tw"
 local n = require "luci.controller.api.network"
 
-local autotype = luci.util.fliter_unsafe(luci.http.urlencode(luci.http.formvalue("autotype")))
-local guide_net = luci.util.fliter_unsafe(luci.http.urlencode(luci.http.formvalue("guide_net")))
+local autotype = luci.http.urlencode(luci.http.formvalue_htmlencode("autotype"))
+local guide_net = luci.http.urlencode(luci.http.formvalue_htmlencode("guide_net"))
 
 local typeReq
 local mac = tw.get_mac()
@@ -130,6 +130,7 @@ $(window).load(function() {
         }else if(type == "nonet"){
             window.location.href='<%=luci.dispatcher.build_url("admin_web", "guide", "internet_success")%>'+'?type=nonet&autotype='+autotype;
         }
+        return false;
     });
 
     $("#s2").change(function(){
@@ -155,14 +156,17 @@ $(window).load(function() {
 
     listerenterkeydown(function(){
         form_submit();
+        return false;
     });
     
     $("#submit").click(function(){
         form_submit();
+        return false;
     });
 
     $("#forse_next").click(function(){
         link_success();
+        return false;
     });
 
     $("#change_ssid_input").click(function(){
@@ -176,6 +180,7 @@ $(window).load(function() {
         $("input[name='key']").attr('blank', 'true');
         set_input_val('', '', 'psk2', 6, '');
         auto_scan = 0;
+        return false;
     });
 
     $("#change_auto_input").click(function(){
@@ -189,6 +194,7 @@ $(window).load(function() {
         set_input_val('', '', '', '', '');
         $("#refresh_ap_list").trigger('click');
         auto_scan = 1;
+        return false;
     });
 });
 
@@ -287,6 +293,7 @@ function update_btn(){
 
 function link_success(){
     window.location.href='<%=luci.dispatcher.build_url("admin_web", "guide","internet_success")%>';
+    return false;
 }
 
 function check_network_connect(link_success){
@@ -382,7 +389,7 @@ function refresh_aplist(callback){
     {
         if(rsp.code == 0){
             wait_times = 0;
-            setTimeout("fill_select(update_view)", 3000);
+            setTimeout("fill_select(update_view)", 5000);
         }else{
             if(typeof(update_view) == "function"){
                 update_view();

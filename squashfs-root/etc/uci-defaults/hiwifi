@@ -10,26 +10,26 @@
 hiwifi_storage_setup() {
 	local board="$1"
 	case $board in
-	"HC5663" | "BL-H750AC")
-		ucidef_set_storage "DISK" "3000M"
+	"HC5663" | "BL-H750AC" | "BL-T8100")
+		ucidef_set_hiwifi_storage "DISK" "3000M"
 		;;
-	"HC5661" | "HC5761" | "HB5881")
-		ucidef_set_storage "SD" "3000M"
+	"HC5661" | "HC5761" | "HB5881" | "ZC-9526" | "ZC-9527" | "ZC-9525" | "HC5762")
+		ucidef_set_hiwifi_storage "SD" "3000M"
 		;;
 	*)
-		ucidef_set_storage "NULL" "0M"
+		ucidef_set_hiwifi_storage "NULL" "0M"
 		;;
 	esac
 }
 
-[ -e /etc/config/hiwifi ] && exit 0
-
-touch /etc/config/hiwifi
+[ ! -e /etc/config/hiwifi ] && touch /etc/config/hiwifi
 
 board=$(tw_board_name)
 
 hiwifi_storage_setup $board
 
-uci commit hiwifi
+ucidef_set_hiwifi_led_state "1"
+
+ucidef_commit_hiwifi
 
 exit 0

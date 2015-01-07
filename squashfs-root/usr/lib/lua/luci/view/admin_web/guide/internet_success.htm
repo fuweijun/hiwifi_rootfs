@@ -67,10 +67,12 @@ fd:close()
 var ssid_page = '<%=luci.dispatcher.build_url("admin_web", "guide", "ssid")%>';
 function next(){
     window.location.href = ssid_page;
+    return false;
 }
 $(window).load(function() {
     $("#skip_link").click(function(){
         next();
+        return false;
     });
     
     var u = navigator.userAgent;
@@ -92,6 +94,7 @@ $(window).load(function() {
         $("#applink").html('体验前所未有的玩法');
         document.getElementById("applink").onclick = function(){
            window.location.href = '<%=luci.dispatcher.build_url("admin_web", "guide", "open_app")%>';
+           return false;
         }
         $("#download_view").show();
         $("#skip_link").show();

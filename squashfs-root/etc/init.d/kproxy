@@ -1,5 +1,7 @@
 #!/bin/sh /etc/rc.common
 
+. /etc/kproxy.common
+
 START=41
 STOP=59
 
@@ -7,11 +9,22 @@ start() {
   [ "$(cat /etc/nginx/mode 2>/dev/null)" == "normal" ] && {
     return 
   }
+
+  if [ -f /etc/kproxy.priority ]; then
+  	source /etc/kproxy.priority > /dev/null 2>&1
+  fi
+  
   insmod kjson
   insmod kmultifast
-  insmod hwf_kproxy
+
+  if expr $priority : '-\?[1-9][0-9]*$' > /dev/null 2>&1; then
+    insmod hwf_kproxy hwf_kproxy_hook_priority=$priority
+  else
+    insmod hwf_kproxy
+  fi
+  
   lan_ipaddr=$(uci get network.lan.ipaddr)
-  kproxy -A -A ${lan_ipaddr}:81
+  kproxy_addrport_add ${lan_ipaddr} 81 0
   kproxy-conf init
 }
 

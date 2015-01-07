@@ -3,6 +3,7 @@
 
 UCIDEF_LEDS_CHANGED=0
 UCIDEF_BUTTONS_CHANGED=0
+UCIDEF_HIWIFI_CHANGED=0
 
 ucidef_set_dhcpc() {
 	local hostname=$1
@@ -280,13 +281,32 @@ ucidef_commit_buttons() {
 	[ "$UCIDEF_BUTTONS_CHANGED" == "1" ] && uci commit system
 }
 
-ucidef_set_storage() {
+ucidef_set_hiwifi_storage() {
 	local storage_type=$1
 	local storage_minsize=$2
+
+	uci -q get hiwifi.storage && return 0
 
 	uci batch <<EOF
 set hiwifi.storage='storage'
 set hiwifi.storage.type='$storage_type'
 set hiwifi.storage.minsize='$storage_minsize'
 EOF
+	UCIDEF_HIWIFI_CHANGED=1
+}
+
+ucidef_set_hiwifi_led_state() {
+	local hiwifi_led_state=$1
+
+	uci -q get hiwifi.led && return 0
+
+	uci batch <<EOF
+set hiwifi.led='led'
+set hiwifi.led.state='$hiwifi_led_state'
+EOF
+	UCIDEF_HIWIFI_CHANGED=1
+}
+
+ucidef_commit_hiwifi() {
+	[ "$UCIDEF_HIWIFI_CHANGED" == "1" ] && uci commit hiwifi
 }

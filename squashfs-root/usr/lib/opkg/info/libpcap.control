@@ -9,6 +9,6 @@ Essential: no
 Priority: optional
 Maintainer: Felix Fietkau <nbd@openwrt.org>
 Architecture: ralink
-Installed-Size: 83365
+Installed-Size: 83327
 Description:  This package contains a system-independent library for user-level network packet
  capture.

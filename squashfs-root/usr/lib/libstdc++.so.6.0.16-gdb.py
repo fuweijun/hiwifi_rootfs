@@ -19,8 +19,8 @@ import gdb
 import os
 import os.path
 
-pythondir = '/home/build/hiwifi/branch/release0.9005/HC5661/platform/staging_dir/toolchain-mipsel_r2_gcc-4.6-linaro_uClibc-0.9.33.2/share/gcc-4.6.4/python'
-libdir = '/home/build/hiwifi/branch/release0.9005/HC5661/platform/staging_dir/toolchain-mipsel_r2_gcc-4.6-linaro_uClibc-0.9.33.2/mipsel-openwrt-linux-uclibc/lib'
+pythondir = '/ROOT/diskb/hiwifi/branch/release0.9007/HC5661/platform/staging_dir/toolchain-mipsel_r2_gcc-4.6-linaro_uClibc-0.9.33.2/share/gcc-4.6.4/python'
+libdir = '/ROOT/diskb/hiwifi/branch/release0.9007/HC5661/platform/staging_dir/toolchain-mipsel_r2_gcc-4.6-linaro_uClibc-0.9.33.2/mipsel-openwrt-linux-uclibc/lib'
 
 # This file might be loaded when there is no current objfile.  This
 # can happen if the user loads it manually.  In this case we don't

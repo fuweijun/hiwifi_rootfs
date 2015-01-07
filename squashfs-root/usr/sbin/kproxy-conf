@@ -1,6 +1,7 @@
 #!/bin/ash
 
 SUFIX=hosts
+SUFIX2=rule
 
 lsmod | grep hwf_kproxy >/dev/null
 if [ $? -ne 0 ]; then
@@ -9,42 +10,48 @@ fi
 
 add_host_by_file()
 {
-  while read host; do
-    if [ ! -z "$host" ]; then
-      kproxy -A -H $host
-    fi 
-  done < $1
+  kproxy-init add $1
 }
 
 del_host_by_file()
 {
-  while read host; do
-    if [ ! -z "$host" ]; then
-      kproxy -D -H $host
-    fi 
-  done < $1
+  kproxy-init del $1
 }
   
 case $1 in
   init)
-    for file in `ls /etc/kproxy.d/*.$SUFIX`; do
+    for file in `ls /etc/kproxy.d/*.$SUFIX 2>/dev/null`; do
       add_host_by_file $file
     done
+
+    for file in `ls /etc/kproxy.d/*.$SUFIX2 2>/dev/null`; do
+      kproxy-file add $file
+    done    
   ;;
 
   install)
     shift
     until [ $# -eq 0 ]; do
-      add_host_by_file /etc/kproxy.d/$1.$SUFIX
-      shift
+        if [ -e /etc/kproxy.d/$1.$SUFIX ]; then
+            add_host_by_file /etc/kproxy.d/$1.$SUFIX
+        fi
+        if [ -e /etc/kproxy.d/$1.$SUFIX2 ]; then
+            kproxy-file add /etc/kproxy.d/$1.$SUFIX2
+        fi      
+        shift
     done
   ;;
 
   uninstall)
     shift
     until [ $# -eq 0 ]; do
-      del_host_by_file /etc/kproxy.d/$1.$SUFIX
-      shift
+        if [ -e /etc/kproxy.d/$1.$SUFIX ]; then
+            del_host_by_file /etc/kproxy.d/$1.$SUFIX
+        fi
+        if [ -e /etc/kproxy.d/$1.$SUFIX2 ]; then
+            kproxy-file del /etc/kproxy.d/$1.$SUFIX2
+        fi       
+        shift
     done
   ;;
 

@@ -5,22 +5,16 @@
 	Copyright	2012
 ]]--
 
+local pcall = pcall
 local ver  = require "luci.version"
-local util = require "luci.util"
 
-local have_smartqos = false
-local qos_html
-local no_limit_html
-local smartqos_up = luci.util.trim(luci.util.exec("cat /proc/sys/net/smartqos/upload_bw 2>/dev/null"))
-local smartqos_down = luci.util.trim(luci.util.exec("cat /proc/sys/net/smartqos/download_bw 2>/dev/null"))
-
-if smartqos_up ~= "0" or smartqos_down ~="0" then 
-	have_smartqos = true
+local remote_addr
+local mac
+pcall(function()
+remote_addr = luci.http.getenv_htmlencode("REMOTE_ADDR") 
+mac = luci.sys.net.ip4mac(remote_addr) or ""
 end
-			
-local qos_up_defult = 200 
-local qos_down_defult = 10
-
+)
 %>
 <!DOCTYPE html>
 <html>
@@ -67,6 +61,37 @@ local qos_down_defult = 10
 
 #set_qos_up, #set_qos_down{width:40px;}
 
+#speed_test_div{
+    background: #F5F4F4;
+    margin: 10px 0 0 0;
+    height: 28px;
+    line-height: 28px;
+}
+
+#qos_total{
+    float: left;
+}
+
+#speed_test_info{
+    float: left;
+    margin-left: 20px;
+}
+
+#qos_set_alert{
+    float: left;
+    margin-left: 20px;
+}
+
+#start_speed_test{
+    float:left;
+    margin-left: 20px;
+    display:none;
+}
+
+#device_list{
+    margin-top: 10px;
+}
+
 </style>
 </head>
 <body>
@@ -74,7 +99,15 @@ local qos_down_defult = 10
 	<h2>已连接设备列表   | <a href="javascript:location.reload();">刷新</a> <i></i></h2>
 </div>
 <div class="routers">
-	<p class="tips"><a href="javascript:void();" onclick="window.parent.open_windows('set_wifi');">设置无线密码</a> | <a href="javascript:void();" onclick="window.parent.open_windows('mac_filter');">设置  MAC 限制</a> &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp  安装 <a href="http://www.hiwifi.com/mobile/" target="_blank">手机远程管理</a> 应用可轻松踢除无线可疑设备！<br><br> </p>
+	<p class="tips"><a href="javascript:void();" onclick="window.parent.open_windows('set_wifi');">设置无线密码</a> | <a href="javascript:void();" onclick="window.parent.open_windows('mac_filter');">设置  MAC 限制</a> &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp  安装 <a href="http://www.hiwifi.com/mobile/" target="_blank">手机远程管理</a> 应用可轻松踢除无线可疑设备！</p>
+	<div id="speed_test_div" class="tips" style="display:none">
+    	<p id="qos_total"></p>
+    	<p id="speed_test_info"></p>
+    	<p id="qos_set_alert"></p>
+    	<p id="start_speed_test">
+    	   <a style="cursor:pointer">立即测速</a>
+    	</p>
+	</div>
 	<table width="100%" border="0" cellspacing="0" cellpadding="0" class="routers-table" id="device_list">
 		<tr>
 			<th class="signal" scope="col" style="width:26px">方式</th>
@@ -88,11 +121,34 @@ local qos_down_defult = 10
 	    <tr id="loading">
 	    	<td colspan="7" style="text-align: center"><span id="list_loading" style="line-height: 150px;height:150px;text-align: center;vertical-align: middle;">获取中...</span></td>
 	    </tr>
+		<tr id="qos_device_config_tr">
+            <td colspan="3"></td>
+            <td align="right" style="text-align: right;"> 限速设备:</td>
+            <td>
+                <div class="trf_">
+                <%:上限值%>: <span class="up_" id="max_device" style="width:2em;"></span><%:台%>
+                <br/>
+                <%:已设置%>: <span class="up_" id="used_device" style="width:2em;"></span><%:台%>
+                </div>
+            </td>   
+            <td>
+                <div class="trf_">
+                    <a href="javascript:void();" id="unset_offline_device_config_btn"><%:清除离线设备%></a>
+                </div>
+            </td>
+            <td align="center" style="text-align: center;"></td>       
+        </tr>
 	</table>
 </div>
 <script type="text/javascript">
+var qos_up_defult = 50;
+var qos_down_defult = 100;
 var set_qos_up;
 var set_qos_down;
+var mine_mac = '<%=mac%>';
+var qos_status_cache;
+var device_list_data_cache;
+var traffic_mac_hash_cache;
 
 function get_qos_html(show,up,down){
 	var dis_html = "";
@@ -104,18 +160,18 @@ function get_qos_html(show,up,down){
 	'</div>'
 }
 
-function get_no_qos_html(show){
+function get_no_qos_html(show, smartqos_active){
 	var dis_html = "";
 	if (!show){
 		dis_html = 'style="display:none;"';
 	}
-	<%if have_smartqos then %>
+	if(smartqos_active){
 		return  '<div class="trf_ qos_smart" '+dis_html+'>'+
 			'<div class="tr"><a href="javascript:void();" class="set_qos">智能 </a></div>'+
 		'</div>';
-	<%else%>
+	}else{
 		return '<div class="trf_ no_limit" '+dis_html+'><div class="tr"><a href="javascript:void();" class="set_qos">无限制 </a></div></div>';
-	<%end%>
+	}
 }
 
 function set_qos_showbox(mac,isset,up,down){
@@ -141,12 +197,12 @@ function qos_window(set_btn_obj){
 	var name_now = set_btn_obj.parent().parent().parent().parent().find(".name_n").html();
 	var set_qos_up = $.trim(set_btn_obj.parent().parent().parent().parent().find(".qos_up_").html());
 	var set_qos_down = $.trim(set_btn_obj.parent().parent().parent().parent().find(".qos_down_").html());
-	if (set_qos_up == "") {set_qos_up = 50;}
-	if (set_qos_down == "") {set_qos_down = 100;}
+	if (set_qos_up == "") {set_qos_up = qos_up_defult;}
+	if (set_qos_down == "") {set_qos_down = qos_down_defult;}
 	
 	art.dialog({
 		title:false,
-		content: '给 <b>'+name_now+'</b><span style="color:#aaaaaa;"> ('+mac_now+')</span> 限速<br><br>上行: <input id="set_qos_up" value="'+set_qos_up+'"> KB/S <br> 下行: <input id="set_qos_down" value="'+set_qos_down+'"> KB/S',
+		content: '给 <b>'+name_now+'</b><span style="color:#aaaaaa;"> ('+mac_now+')</span> 限速<br><br>上行: <input id="set_qos_up" value="'+set_qos_up+'" maxlength="9"> KB/S <br> 下行: <input id="set_qos_down" value="'+set_qos_down+'" maxlength="9"> KB/S',
 	    id: "qos_box",
 	    button: [
 	             {
@@ -156,15 +212,34 @@ function qos_window(set_btn_obj){
 	                	var al_box = this;
 	                	set_qos_up = $("#set_qos_up").val();
 						set_qos_down = $("#set_qos_down").val();
+						set_qos_up = parseInt(set_qos_up)
+						if(!(set_qos_up > 0)){
+						  alert("上行必须是大于0的整数")
+						  return false
+						}
+						if(!(set_qos_up <= 100000)){
+						  alert("<%:上行必须是小于或等于100000的整数%>")
+						  return false
+						}
+						set_qos_down = parseInt(set_qos_down)
+						if(!(set_qos_down > 0)){
+                          alert("下行必须是大于0的整数")
+                          return false
+                        }
+						if(!(set_qos_down <= 100000)){
+                          alert("<%:下行必须是小于或等于100000的整数%>")
+                          return false
+                        }
                 		var request_date = {"mac":mac_now,"up":set_qos_up,"down":set_qos_down,"name":name_now}; 
-                		$.getJSON("<%=luci.dispatcher.build_url("api", "network","set_qos")%>",request_date,function(rsp) 
+                		$.getJSON("<%=luci.dispatcher.build_url("api", "qos","set_device_config")%>",request_date,function(rsp) 
                 		{ 
                 			if(rsp.code == 0){
                 				set_qos_showbox(mac_now,true,set_qos_up,set_qos_down);
                 				al_box.close();
+                				refresh_qos_device_config_status();
          						return false;
                 			} else {
-                				art.dialog({icon:"error",title:false,content:rsp.msg}).lock().time(1);
+                				art.dialog({icon:"error",title:false,content:rsp.msg}).lock().time(3);
          						return false;
                 			}
                 		})
@@ -177,11 +252,12 @@ function qos_window(set_btn_obj){
 	                 callback: function () {
 	                	var al_box = this;
 	                 	var request_date = {"mac":mac_now,"up":-1,"down":-1}; 
-	         			$.getJSON("<%=luci.dispatcher.build_url("api", "network","set_qos")%>",request_date,function(rsp) 
+	         			$.getJSON("<%=luci.dispatcher.build_url("api", "qos","unset_device_config")%>",request_date,function(rsp) 
 	         			{ 
 	         				if(rsp.code == 0){
 	         					set_qos_showbox(mac_now,false);
 	         					al_box.close();
+	         					refresh_qos_device_config_status();
          						return false;
 	         				} else {
 	         					art.dialog({icon:"error",title:false,content:rsp.msg}).lock().time(4);
@@ -206,199 +282,214 @@ function qos_window(set_btn_obj){
 
 $(function(){
 	
-	//$.ajaxSettings.async = false;
-	<%
-	local remote_addr = luci.http.getenv("REMOTE_ADDR") 
-	local mac = luci.sys.net.ip4mac(remote_addr) or ""
-	%>
 	//本机 mac 地址
-	var mac_local = "<%=mac%>".toUpperCase();
+	var mac_local = ""
+	if(mine_mac){
+	   mac_local = mine_mac.toUpperCase();
+	}
 	
-	//取最后一个
-	var request_date = {}; 
-	//wifi/get_connected_devices_list 
-	$.getJSON("<%=luci.dispatcher.build_url("api", "network","device_list")%>",request_date,function(rsp) 
-	{ 
-		var d_mac;
-		var d_signal;
-		var d_ip;
-		var d_type;
-		var d_name;
-		var d_html = "";
-		var d_signal_level = 3;
-		var d_up_ps_str = "0 K";
-		var d_down_ps_str = "0 KB";
-		var d_up_ps = 0;
-		var d_down_ps = 0;
-		var d_qos_up;
-		var d_qos_down;
-		var d_rpt;
-		var d_rpt_name="";
-		var d_type_wifi;
-		var d_type_wifi_file;
-		var t_mac;
-		
-		if(rsp.code == 0){
-			var device_list = rsp.devices
-			for(i=0;i<device_list.length;i++){
-				d_name = "未知";
-				d_ip = "未知";
-				d_type = "line";
-				type_html = "";
-				d_rpt_name = "";
-				
-				d_mac = device_list[i].mac.toUpperCase();
-				d_signal = device_list[i].signal;
-				d_type = device_list[i].type;
-				
-				d_up_ps = parseInt(device_list[i].up);
-				d_down_ps = parseInt(device_list[i].down);
-				
-				d_qos_up = parseInt(device_list[i].qos_up);
-				d_qos_down = parseInt(device_list[i].qos_down);
-				d_qos_status = parseInt(device_list[i].qos_status);
-				d_type_wifi = device_list[i].type_wifi;
-				d_rpt = device_list[i].rpt;
-				
-				d_up_ps_str = kb_format(d_up_ps);
-				d_down_ps_str = kb_format(d_down_ps);
-				
-				if(device_list[i].ip){d_ip = device_list[i].ip;}
-				if(device_list[i].type){d_type = device_list[i].type;}
-				if(device_list[i].name && device_list[i].name != ""){d_name = device_list[i].name;}
-				
-				d_signal_level = Math.floor(d_signal/20);
-				if(d_signal_level>4){d_signal_level=4}
-				
-				var mac_local_style = "";
-				var kick_html;
-				
-				if(mac_local==d_mac){
-					mac_local_style = "style='font-weight: bold'";
-				}
-								 
-				if (d_type == "line"){
-					type_html = '<td class="signal"><span><img src="<%=resource%>/web/images/rj45_2.png" title="网线连接"></span></td>';
-					kick_html = '';
-				} else if (d_type == "wifi"){
-					if(d_type_wifi == "5G"){
-						d_type_wifi_file = "5g-signal";
-					} else {
-						d_type_wifi_file = "signal";
-					}
-					type_html = '<td class="signal"><span><img src="<%=resource%>/web/images/'+d_type_wifi_file+d_signal_level+'.png" title="无线连接"></span></td>';
-					kick_html = '<a href="javascript:void();" class="kick_this">强制断开</a>';
-				} else {
-					type_html = '<td class="signal"><span>未知</span></td>';
-				}
-				
-				var qos_html = "";
-				if(d_qos_status){
-					qos_html = get_qos_html(true,d_qos_up,d_qos_down)+get_no_qos_html(false);
-				} else {
-					qos_html = get_qos_html(false,"","")+get_no_qos_html(true);
-				}
-				
-				if(d_rpt){
-					d_rpt_name = "(极卫星) ";
-				}
-				d_html += '<tr>'+
-					type_html+
-					'<td class="mac" id="'+d_mac.replace(/[\s\:]+/g,"")+'" '+mac_local_style+'>'+d_mac+'</td>'+
-					'<td class="ip" '+mac_local_style+'>'+d_ip+'</td>'+
-					'<td class="name"><i style="font-weight:normal;">'+d_rpt_name+'</i> <span class="name_n">'+d_name+'</span> '+
-					'<a href="javascript:void();" class="config_name">改名</a>'+
-					'</td>'+
-					'<td> <div class="trf_">上: <span class="up_">'+d_up_ps_str+'</span>/S<br> 下: <span class="down_">'+d_down_ps_str+'</span>/S </div> </td>'+
-					'<td> '+qos_html+' </td>'+
-					'<td>'+kick_html+'</td>'+
-					'</tr>';
-			}
-
-			var kick_cancel_html = '<a href="javascript:void();" class="kick_cancel">恢复断开的设备</a>';
-			
-			var d_total_up = kb_format(parseInt(rsp.total_up));
-			var d_total_down = kb_format(parseInt(rsp.total_down));
-			
-			if(d_html==''){
-				$('#list_loading').html('暂无设备接入. <a href="javascript:location.reload();">刷新本页</a> | '+kick_cancel_html);
-			}else{
-				d_html += '<tr>'+
-				'<td colspan="3"></td>'+	
-				'<td align="right" style="text-align: right;"> 总流量:</td>'+	
-				'<td><div class="trf_">上: <span class="up_" id="total_up">'+d_total_up+'</span>/S<br>下: <span class="up_" id="total_down">'+d_total_down+'</span>/S</div></td>'+	
-				'<td><div class="trf_"><br><br></div></td>'+
-				'<td align="center" style="text-align: center;">'+kick_cancel_html+'</td>'+				
-				'</tr>';
-				$('#loading').hide();
-				$("#device_list").append(d_html);	
-				bind_act();
-				setTimeout("update_traffic()",2000);
-			}
-		}else{
-			$('#list_loading').html('数据获取错误');
-		}
-		
-		$(".set_qos").click(function(){
-			qos_window($(this));
-			/*
-			$(this).parent().parent().parent().find(".qos_show_box").show();
-			$(this).parent().parent().parent().find(".qos_up_ > input").val(100);
-			$(this).parent().parent().parent().find(".qos_down_ > input").val(200);
-			$(this).parent().parent().find(".qos_smart").hide();
-			$(this).parent().parent().find(".no_limit").hide();*/
-		})
-		
-		$(".kick_this").click(function(){
-			var mac_now = $(this).parent().parent().find(".mac").html();
-			var html_now = $(this).parent().parent();
-			var name_now = $(this).parent().parent().find(".name_n").html();
-			var is_local_html="";
-			var name_now = $(this).parent().parent().find(".name_n").html();
-			if (mac_now == mac_local) {
-				is_local_html = "<span style='color:red'> (本机) </span>";
-			} 
-			var info_alert = '<b>'+ name_now + is_local_html + '</b> 将被路由器屏蔽。如需解除屏蔽，点击下方 "恢复被断开的设备" 按钮，或在路由器后台关闭 mac 地址限制。';
-			art.dialog({
-			    title: false,
-			    content: info_alert,
-			    icon: 'warning',
-			    ok: function(){
-					
-					//wifi/set_mac_filter 
-					var request_date =  {"mac":mac_now};
-					$.getJSON("<%=luci.dispatcher.build_url("api", "network","kick_device")%>",request_date,function(rsp) 
-					{
-						if(rsp.code == 0){
-							window.parent.art.dialog({icon:"succeed",title:false,content:"断开成功."}).lock().time(4);
-							html_now.html("");
-						} else {
-							window.parent.art.dialog({icon:"error",title:false,content:rsp.msg}).lock().time(4);
-						}
-					})
-			    },
-			    okVal: "确认断开", 
-			    cancel: function(){
-			        this.close();
-			        return false;
-			    }
-			}).lock();
-		})
-		
-		$(".kick_cancel").click(function(){
-			//wifi/set_mac_filter 
-			var request_date =  {"status":"stop","device":"radio0.network1"};
-			$.getJSON("<%=luci.dispatcher.build_url("api", "wifi","set_mac_filter")%>",request_date,function(rsp) 
-			{
-				
-				if(rsp.code == 0){
-					window.parent.art.dialog({icon:"succeed",title:false,content:"解除成功，设备可重新连接."}).lock().time(4);
-				} else {
-					window.parent.art.dialog({icon:"error",title:false,content:rsp.msg}).lock().time(4);
-				}				
-			})
-		})
-	})
+	function device_list(qos_data){
+	    var qos_active = qos_data.active;
+	   
+    	//取最后一个
+        var request_date = {}; 
+        //wifi/get_connected_devices_list 
+        $.getJSON("<%=luci.dispatcher.build_url("api", "network","device_list")%>",request_date,function(rsp) 
+        { 
+            var d_mac;
+            var d_signal;
+            var d_ip;
+            var d_type;
+            var d_name;
+            var d_html = "";
+            var d_signal_level = 3;
+            var d_up_ps_str = "0 K";
+            var d_down_ps_str = "0 KB";
+            var d_up_ps = 0;
+            var d_down_ps = 0;
+            var d_qos_up;
+            var d_qos_down;
+            var d_rpt;
+            var d_rpt_name="";
+            var d_type_wifi;
+            var d_type_wifi_file;
+            var d_online;
+            var t_mac;
+            
+            device_list_data_cache = rsp;
+            
+            if(rsp.code == 0){
+                var device_list = rsp.devices
+                for(i=0;i<device_list.length;i++){
+                    d_name = "未知";
+                    d_ip = "未知";
+                    d_type = "line";
+                    type_html = "";
+                    d_rpt_name = "";
+                    
+                    d_mac = device_list[i].mac.toUpperCase();
+                    d_signal = device_list[i].signal;
+                    d_type = device_list[i].type;
+                    
+                    d_up_ps = parseInt(device_list[i].up);
+                    d_down_ps = parseInt(device_list[i].down);
+                    
+                    d_qos_up = parseInt(device_list[i].qos_up);
+                    d_qos_down = parseInt(device_list[i].qos_down);
+                    d_qos_status = parseInt(device_list[i].qos_status);
+                    d_type_wifi = device_list[i].type_wifi;
+                    d_rpt = device_list[i].rpt;
+                    d_online = device_list[i].online;
+                    
+                    d_up_ps_str = kb_format(d_up_ps);
+                    d_down_ps_str = kb_format(d_down_ps);
+                    
+                    d_up_ps_str = "0 KB"
+                    d_down_ps_str = "0 KB"
+                    
+                    if(device_list[i].ip){d_ip = device_list[i].ip;}
+                    if(device_list[i].type){d_type = device_list[i].type;}
+                    if(device_list[i].name && device_list[i].name != ""){d_name = device_list[i].name;}
+                    
+                    d_signal_level = Math.floor(d_signal/20);
+                    if(d_signal_level>4){d_signal_level=4}
+                    
+                    var mac_local_style = "";
+                    var kick_html;
+                    
+                    if(d_rpt){
+                        if(d_online == false){
+                            continue;
+                        }
+                    }
+                    
+                    if(mac_local==d_mac){
+                        mac_local_style = "style='font-weight: bold'";
+                    }
+                                     
+                    if (d_type == "line"){
+                        type_html = '<td class="signal"><span><img src="<%=resource%>/web/images/rj45_2.png" title="网线连接"></span></td>';
+                        kick_html = '';
+                    } else if (d_type == "wifi"){
+                        if(d_type_wifi == "5G"){
+                            d_type_wifi_file = "5g-signal";
+                        } else {
+                            d_type_wifi_file = "signal";
+                        }
+                        type_html = '<td class="signal"><span><img src="<%=resource%>/web/images/'+d_type_wifi_file+d_signal_level+'.png" title="无线连接"></span></td>';
+                        kick_html = '<a href="javascript:void();" class="kick_this">强制断开</a>';
+                    } else {
+                        type_html = '<td class="signal"><span>未知</span></td>';
+                    }
+                    
+                    var qos_html = "";
+                    if(d_qos_status){
+                        qos_html = get_qos_html(true,d_qos_up,d_qos_down)+get_no_qos_html(false, qos_active);
+                    } else {
+                        qos_html = get_qos_html(false,"","")+get_no_qos_html(true, qos_active);
+                    }
+                    
+                    if(d_rpt){
+                        d_rpt_name = "(极卫星) ";
+                        qos_html = "";
+                    }
+                    d_html += '<tr>'+
+                        type_html+
+                        '<td class="mac" id="'+d_mac.replace(/[\s\:]+/g,"")+'" '+mac_local_style+'>'+d_mac+'</td>'+
+                        '<td class="ip" '+mac_local_style+'>'+d_ip+'</td>'+
+                        '<td class="name"><i style="font-weight:normal;">'+d_rpt_name+'</i> <span class="name_n">'+d_name+'</span> '+
+                        '<a href="javascript:void();" class="config_name">改名</a>'+ 
+                        '</td>'+
+                        '<td> <div class="trf_">上: <span class="up_">'+d_up_ps_str+'</span>/S<br> 下: <span class="down_">'+d_down_ps_str+'</span>/S </div> </td>'+
+                        '<td> '+qos_html+' </td>'+
+                        '<td>'+kick_html+'</td>'+
+                        '</tr>';
+                }
+    
+                var kick_cancel_html = '<a href="javascript:void();" class="kick_cancel">恢复断开的设备</a>';
+                
+                var d_total_up = kb_format(parseInt(rsp.total_up));
+                var d_total_down = kb_format(parseInt(rsp.total_down));
+                d_total_up = "0 KB"
+                d_total_down = "0 KB"
+                
+                if(d_html==''){
+                    $('#list_loading').html('暂无设备接入. <a href="javascript:location.reload();">刷新本页</a> | '+kick_cancel_html);
+                }else{
+                    d_html += '<tr>'+
+                    '<td colspan="3"></td>'+    
+                    '<td align="right" style="text-align: right;"> 总流量:</td>'+  
+                    '<td><div class="trf_">上: <span class="up_" id="total_up">'+d_total_up+'</span>/S<br>下: <span class="up_" id="total_down">'+d_total_down+'</span>/S</div></td>'+    
+                    '<td><div class="trf_"><br><br></div></td>'+
+                    '<td align="center" style="text-align: center;">'+kick_cancel_html+'</td>'+             
+                    '</tr>';
+                    $('#loading').hide();
+                    $("#device_list").append(d_html);   
+                    bind_act();
+                    setTimeout("update_traffic()",2000);
+                }
+            }else{
+                $('#list_loading').html('数据获取错误');
+            }
+            
+            $(".set_qos").click(function(){
+                    qos_window($(this));
+            })
+            
+            $(".kick_this").click(function(){
+                var mac_now = $(this).parent().parent().find(".mac").html();
+                var html_now = $(this).parent().parent();
+                var name_now = $(this).parent().parent().find(".name_n").html();
+                var is_local_html="";
+                var name_now = $(this).parent().parent().find(".name_n").html();
+                if (mac_now == mac_local) {
+                    is_local_html = "<span style='color:red'> (本机) </span>";
+                } 
+                var info_alert = '<b>'+ name_now + is_local_html + '</b> 将被路由器屏蔽。如需解除屏蔽，点击下方 "恢复断开的设备" 按钮，或在“高级设置 - 无线MAC访问控制”解除。';
+                art.dialog({
+                    title: false,
+                    content: info_alert,
+                    icon: 'warning',
+                    ok: function(){
+                        
+                        //wifi/set_mac_filter 
+                        var request_date =  {"mac":mac_now};
+                        $.getJSON("<%=luci.dispatcher.build_url("api", "network","kick_device")%>",request_date,function(rsp) 
+                        {
+                            if(rsp.code == 0){
+                                window.parent.art.dialog({icon:"succeed",title:false,content:"断开成功."}).lock().time(4);
+                                html_now.html("");
+                            } else {
+                                window.parent.art.dialog({icon:"error",title:false,content:rsp.msg}).lock().time(4);
+                            }
+                        })
+                    },
+                    okVal: "确认断开", 
+                    cancel: function(){
+                        this.close();
+                        return false;
+                    }
+                }).lock();
+            })
+            
+            $(".kick_cancel").click(function(){
+                //wifi/set_mac_filter 
+                var request_date =  {"status":"stop","device":"radio0.network1"};
+                $.getJSON("<%=luci.dispatcher.build_url("api", "wifi","set_mac_filter")%>",request_date,function(rsp) 
+                {
+                    
+                    if(rsp.code == 0){
+                        window.parent.art.dialog({icon:"succeed",title:false,content:"解除成功，设备可重新连接."}).lock().time(4);
+                    } else {
+                        window.parent.art.dialog({icon:"error",title:false,content:rsp.msg}).lock().time(4);
+                    }               
+                })
+            })
+            
+            get_device_config_list()
+            show_qos_device_config_status()
+        })
+	}
 
 	function bind_act(){
 		$(".config_name").click(function(){
@@ -447,11 +538,93 @@ $(function(){
 			}
 		}, "json")
 	}
+	
+    var validate_qos_set = function(user_set_data, speed_test){
+       if(user_set_data && speed_test){
+           if(user_set_data.total_down_kb && speed_test.speed_down_kb &&
+            parseInt(user_set_data.total_down_kb) < parseInt(speed_test.speed_down_kb)){
+                return true
+           }
+           if(user_set_data.total_up_kb && speed_test.speed_up_kb &&
+                parseInt(user_set_data.total_up_kb) < parseInt(speed_test.speed_up_kb)){
+               return true
+           }
+       }
+       return false
+    }
+    
+    var validate_qos_max_set = function(user_set_data){
+       if(user_set_data){
+           if(user_set_data.total_down_kb &&
+            parseInt(user_set_data.total_down_kb) > 1000000){
+                return true
+           }
+           if(user_set_data.total_up_kb &&
+                parseInt(user_set_data.total_up_kb) > 1000000){
+               return true
+           }
+       }
+       return false
+    }
+	
+	get_qos_status(function(data){
+	   set_total_info(data)
+	   device_list(data)
+    	get_speed_test_result(function(data1){
+    	   set_speed_test_result(data1)
+    	   if(validate_qos_set(data, data1)){
+    	       var alert_ico = '<img src="/turbo-static/turbo/web/images/alert-icon.png" height="15" border="0">'
+    	       $("#qos_set_alert").html(alert_ico+"QoS设置不佳，可能导致上网变慢")
+    	   }else if(validate_qos_max_set(data)){
+    	       var alert_ico = '<img src="/turbo-static/turbo/web/images/alert-icon.png" height="15" border="0">'
+               $("#qos_set_alert").html(alert_ico+"<%:QoS设置不佳，可能导致上网不佳%>")
+    	   }else{
+    	       $("#qos_set_alert").html("")
+    	   }
+    	})
+        set_qos_device_config_status(data)
+	})
+	
+	$("#start_speed_test").click(function(){
+	   window.parent.open_windows('qos_setup', {start_test:0});
+	})
+
+	$("#unset_offline_device_config_btn").click(function(){
+	   var info_alert = "<%:确认要清除全部离线设备的限速%>?<br/><%:清除后的设备重新连接时您可以再次限速%>"
+	   art.dialog({
+            title: false,
+            content: info_alert,
+            icon: 'warning',
+            ok: function(){
+               unset_offline_device_config(function(){
+                   window.parent.art.dialog({icon:"succeed",title:false,content:"<%:离线设备的限速已被清除%>."}).lock().time(4);
+                   refresh_qos_device_config_status()
+               })
+            },
+            okVal: "<%:清除%>", 
+            cancel: function(){
+                this.close();
+                return false;
+            }
+        }).lock();
+	})
 });
 
-function update_traffic(){
+var qos_start = function(success_callback){
+    $.post("<%=luci.dispatcher.build_url("api", "qos","start")%>",{},function(rsp)
+    {
+        if(rsp.code == 0){
+            if(typeof(success_callback) == "function"){
+                success_callback(rsp)
+            }
+        }
+    })
+}
+
+function update_traffic_old(){
 	$.getJSON("<%=luci.dispatcher.build_url("api", "network","get_traffic_mac_hash")%>",{},function(rsp)
 	{
+	    traffic_mac_hash_cache = rsp;
 		var traffic_mac_hash = rsp.traffic_mac_hash;
 		var total_up = 0;
 		var total_down = 0;
@@ -469,7 +642,47 @@ function update_traffic(){
 		
 		$("#total_up").html(kb_format(total_up));
 		$("#total_down").html(kb_format(total_down));
-		setTimeout("update_traffic()",2000);
+		setTimeout("update_traffic()",5000);
+	})
+}
+
+function update_traffic(){
+	$.getJSON("<%=luci.dispatcher.build_url("api", "qos","get_traffic_list")%>",{},function(rsp)
+	{
+	    traffic_mac_hash_cache = rsp;
+		var traffic_mac_hash = rsp.data.list;
+		var total_up = 0;
+		var total_down = 0;
+		for(var k = 0; k < traffic_mac_hash.length; k++){
+			var d_mac = traffic_mac_hash[k].mac+"";
+			d_mac = d_mac.toUpperCase();
+			var d_down = traffic_mac_hash[k].down;
+			var d_up = traffic_mac_hash[k].up;
+			$(".mac:contains('"+d_mac+"')").parent().find(".up_").html(kb_format(d_up));
+			$(".mac:contains('"+d_mac+"')").parent().find(".down_").html(kb_format(d_down));
+			if($(".mac:contains('"+d_mac+"')").length > 0){
+			  total_up = total_up + parseInt(d_up);
+			  total_down = total_down + parseInt(d_down);
+			}
+		}
+		
+		$("#total_up").html(kb_format(total_up));
+		$("#total_down").html(kb_format(total_down));
+		setTimeout("update_traffic()",5000);
+	})
+}
+
+function get_device_config_list(){
+	$.getJSON("<%=luci.dispatcher.build_url("api", "qos","get_device_config_list")%>",{},function(rsp)
+	{
+		var traffic_mac_hash = rsp.data;
+		for(var k = 0; k < traffic_mac_hash.length; k++){
+			var d_mac = traffic_mac_hash[k].mac+"";
+			d_mac = d_mac.toUpperCase();
+			var d_down = traffic_mac_hash[k].down;
+			var d_up = traffic_mac_hash[k].up;
+			set_qos_showbox(d_mac, true, d_up, d_down)
+		}
 	})
 }
 
@@ -484,6 +697,104 @@ function kb_format(kb){
 	
 	return r
 }
+
+function get_qos_status(success_callback){
+    $.getJSON("<%=luci.dispatcher.build_url("api", "qos","status")%>",{},function(rsp)
+    {
+        qos_status_cache = rsp;
+        if(rsp.code == 0){
+            if(typeof(success_callback) == "function"){
+                success_callback(rsp.data)
+            }
+        }
+    })
+}
+
+function set_total_info(qos_data){
+    if(!qos_data){
+       return;
+    }
+    var total_down = qos_data.total_down * 8 / 1000;
+    var total_up = qos_data.total_up * 8 / 1000;
+    var active = qos_data.active;
+    var html_val = ""
+    if(active){
+        html_val = "QoS参数，下行<b>"+total_down+"</b>M，上行<b>"+total_up+"</b>M"
+        $("#speed_test_div").show()
+    }else{
+        html_val = "智能QoS未启动"
+        $("#speed_test_div").hide()
+    }
+    $("#qos_total").html(html_val)
+}
+
+function set_qos_device_config_status(qos_data){
+    if(!qos_data){
+       return;
+    }
+    var max_device = qos_data.max_device;
+    var used_device = qos_data.used_device;
+    $("#max_device").text(max_device);
+    $("#used_device").text(used_device);
+}
+
+// 更新限速设备状态
+function refresh_qos_device_config_status(){
+   get_qos_status(function(data){
+       set_qos_device_config_status(data)
+   })
+}
+
+function set_speed_test_result(qos_data){
+    if(!qos_data){
+       return;
+    }
+    var html_val = ""
+    if(typeof(qos_data.speed_up) != "undefined" &&
+        typeof(qos_data.speed_down) != "undefined"){
+        var speed_up = qos_data.speed_up * 8 / 1000
+        var speed_down = qos_data.speed_down * 8 / 1000
+        html_val = "上次测速：下行<b>"+speed_down+"</b>M，上行<b>"+speed_up+"</b>M"
+    }else{
+        html_val = "使用测速功能，获取参考数值"
+    }
+    $("#speed_test_info").html(html_val)
+    $("#start_speed_test").show()
+}
+
+function get_speed_test_result(success_callback){
+    $.getJSON("<%=luci.dispatcher.build_url("api", "qos","speed_test_result")%>",{},function(rsp)
+    {
+        if(rsp.code == 0){
+            if(typeof(success_callback) == "function"){
+                success_callback(rsp.data)
+            }
+        }
+    })
+}
+
+function is_qos_active(){
+   if(qos_status_cache && qos_status_cache.data && qos_status_cache.data.active){
+    return true;
+   }
+   return false;
+}
+
+function show_qos_device_config_status(){
+    $("#qos_device_config_tr").appendTo('#device_list');  
+}
+
+function unset_offline_device_config(success_callback){
+    $.getJSON("<%=luci.dispatcher.build_url("api", "qos","unset_offline_device_config")%>",{},function(rsp)
+    {
+        if(rsp.code == 0){
+            if(typeof(success_callback) == "function"){
+                success_callback(rsp.data)
+            }
+        }
+    })
+}
+
 </script>
 </body>
 </html>

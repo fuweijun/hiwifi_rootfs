@@ -1,0 +1,13 @@
+Package: libiflua
+Version: 0.0.1-20140626
+Depends: libc, libpthread, liblua
+Provides: 
+Source: /ROOT/diskb/hiwifi/branch/release0.9007/HC5661/package/libif-lua
+Section: libs
+Status: unknown ok not-installed
+Essential: no
+Priority: optional
+Maintainer: Liu guang <guang.liu@hiwifi.tw>
+Architecture: ralink
+Installed-Size: 3708
+Description:  Used to suport lua interfaces.

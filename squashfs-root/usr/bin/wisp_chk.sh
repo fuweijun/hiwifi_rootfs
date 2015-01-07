@@ -1,6 +1,7 @@
 #!/bin/sh
 
 ifname=$(uci get wireless.@wifi-iface[1].ifname)
+flag=0
 
 while [ $(uci get network.wan.ifname) = "$ifname" ];
 do
@@ -9,10 +10,19 @@ do
 		sleep 9
 		continue
 	}
-	status=$(lua -e "require 'hcwifi';print(hcwifi.get(\"$ifname\",'status'))")
-	[ $status -eq 0 ] || continue
  	
- 	n=0;
+ 	status=$(lua -e "require 'hcwifi';print(hcwifi.get(\"$ifname\",'status'))")
+ 	[ $status -eq 0 ] || {
+ 		flag=1
+ 		continue
+ 	}
+ 	[ $flag -eq 0 ] || {
+		flag=0
+ 		ifup wan
+ 		continue
+ 	}
+ 	
+ 	n=0
 	while [ 1 ];do
 		ussid=$(uci get wireless.@wifi-iface[1].ssid${n} 2>/dev/null)
 		ubssid=$(uci get wireless.@wifi-iface[1].bssid${n} 2>/dev/null)

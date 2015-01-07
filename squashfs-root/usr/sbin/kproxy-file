@@ -1,0 +1,180 @@
+#!/usr/bin/lua
+
+package.cpath = package.cpath .. ";/usr/lib/?.so"
+
+local util = require("luci.util")
+
+local function getipaddr()
+	local addrline = util.exec("ifconfig br-lan | grep -i '[ \t]inet addr:.*Mask:' | head -n1")
+	if addrline == "" then
+		return 1
+	end
+	local ipaddr = string.match(addrline, ".*inet addr:\([0-9\.]*\)")
+	if ipaddr == nil then
+		return 1
+	end	
+	return ipaddr
+end
+
+local json = require "libluajsonc"
+
+local fun = require "kproxy"
+
+local util = require "luci.util"
+
+local file
+
+local jsontab
+
+local action
+
+local str
+
+local tab
+
+local tab2
+
+local ruleaction = {}
+
+local rule = {}
+
+local params = {}
+
+local queueIndex
+
+local lan
+
+local buffer
+
+local res
+
+local namespace
+
+local key = {"METHOD", "URI", "PORT", "ARGS", "ACCEPT", "ACCEPT_CHARSET", "ACCEPT_ENCODING", "ACCEPT_LANGUAGE", "AUTHORIZATION",
+				"CACHE_CONTROL", "CONNECTION", "COOKIE", "DATE", "EXPECT", "FROM", "HOST", "IF_MATCH", "IF_MODIFIED_SINCE", "IF_NONE_MATCH",
+				"IF_RANGE", "IF_UNMODIFIED_SINCE", "MAX_FORWARDS", "PRAGMA", "PROXY_AUTHORIZATION", "RANGE", "REFERER", "TE", "USER_AGENT",
+				"SIP", "DIP", "SPORT", "DPORT",
+				"NOT_METHOD", "NOT_URI", "NOT_PORT", "NOT_ARGS", "NOT_ACCEPT", "NOT_ACCEPT_CHARSET", "NOT_ACCEPT_ENCODING", "NOT_ACCEPT_LANGUAGE", "NOT_AUTHORIZATION",
+				"NOT_CACHE_CONTROL", "NOT_CONNECTION", "NOT_COOKIE", "NOT_DATE", "NOT_EXPECT", "NOT_FROM", "NOT_HOST", "NOT_IF_MATCH", "NOT_IF_MODIFIED_SINCE", "NOT_IF_NONE_MATCH",
+				"NOT_IF_RANGE", "NOT_IF_UNMODIFIED_SINCE", "NOT_MAX_FORWARDS", "NOT_PRAGMA", "NOT_PROXY_AUTHORIZATION", "NOT_RANGE", "NOT_REFERER", "NOT_TE", "NOT_USER_AGENT",
+				"NOT_SIP", "NOT_DIP", "NOT_SPORT", "NOT_DPORT"}
+				
+local cfgaction = {pass=0, nginx=1, syslog=2}
+			
+if table.getn(arg) ~= 2 then
+	print("Lack of filename!")
+	os.exit(1)
+end
+
+action = arg[1]
+
+if action ~= "add" and action ~= "del" then
+	print("No support operation!")
+	os.exit(1)
+end
+
+file = io.open(arg[2], "r")
+
+if nil == file then
+	print("open file failed!")
+	os.exit(1)
+end
+
+buffer = file:read("*a")
+
+if nil == buffer then
+	print("File is nil!")
+	file:close()
+	os.exit(1)
+end
+
+str = string.gsub(buffer, "%s", "")
+
+tab = json.decode(str)
+
+if tab ~= nil then
+	if tab["action_type"] == nil or tab["action_type"] == "nginx" then
+		if tab["ip"] ~= nil and tab["port"] ~= nil then
+			ruleaction["ip"] = tab["ip"]
+			ruleaction["port"] = tab["port"]
+			ruleaction["action_type"] = cfgaction["nginx"]
+		elseif tab["ip"] == nil and tab["port"] ~= nil then
+			local ip = getipaddr()
+			
+			if ip == 1 then
+				file:close()
+				os.exit(1)			
+			end
+			
+			ruleaction["ip"] = string.gsub(ip, "%s", "")
+			ruleaction["port"] = tab["port"]
+			ruleaction["action_type"] = cfgaction["nginx"]
+		else
+			ruleaction = nil
+		end
+	else
+		if cfgaction[tab["action_type"]] == nil then
+			file:close()
+			os.exit(1)			
+		end
+		
+		ruleaction["action_type"] = cfgaction[tab["action_type"]]
+
+		if tab["action_type"] == "syslog" then
+			if tab["syslog_program"] ~= nil then
+				ruleaction["syslog_program"] = tab["syslog_program"]
+			else
+				ruleaction["syslog_program"] = "nginx_syslog"
+			end
+		end		
+	end
+
+	if tab["queue"] ~= nil then
+		queueIndex = tab["queue"]	
+	else
+		queueIndex = "0"
+	end	
+	
+	if tab["lan"] ~= nil then
+		params["lan_num"] = tab["lan"]
+	end
+
+	if tab["namespace"] == nil then
+		namespace = "sys"
+	else
+		namespace = tab["namespace"]
+	end	
+
+	params["msg_type"] = "rules"
+	params["action"] = action
+
+	params["param"] = {}
+	
+	for i,v in ipairs(tab["rules"]) do
+		params["param"][i] = {}
+		params["param"][i]["rule"] = tab["rules"][i];
+
+		if nil ~= ruleaction then
+			params["param"][i]["ruleaction"] = ruleaction
+		end
+		
+		if nil ~= queueIndex then
+			params["param"][i]["queueIndex"] =  queueIndex
+		end
+
+		params["param"][i]["namespace"] =  namespace
+	end 
+
+	params["debuglevel"] = "close"
+
+	if 0 ~= fun(params) then
+		print("Configure failed!")
+		res = 1
+	else
+		res = 0
+	end
+end
+
+file:close()
+
+os.exit(res)

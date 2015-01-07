@@ -3,10 +3,10 @@ local ver  = require "luci.version"
 local util  = require "luci.util"
 local http = require "luci.http"
 
-local autotype = util.fliter_unsafe(http.formvalue("autotype"))
-local peerdnsReq = http.formvalue("peerdns")
-local override_dnsReq = http.formvalue("override_dns")
-local override_dns2Req = http.formvalue("override_dns2")
+local autotype = http.formvalue_htmlencode("autotype")
+local peerdnsReq = http.formvalue_htmlencode("peerdns")
+local override_dnsReq = http.formvalue_htmlencode("override_dns")
+local override_dns2Req = http.formvalue_htmlencode("override_dns2")
 
 %>
 <!DOCTYPE html>
@@ -21,6 +21,11 @@ local override_dns2Req = http.formvalue("override_dns2")
 <script src="<%=resource%>/guide/js/jquery.dropkick-1.0.0.js?v=<%=ver.svnRevNum%>"></script>
 <script src="<%=resource%>/guide/js/application.js?v=<%=ver.svnRevNum%>"></script>
 <script src="<%=resource%>/guide/js/twx_guide.js?v=<%=ver.svnRevNum%>"></script>
+<style type="text/css">
+    .skip_btn{
+        color: blue;
+    }
+</style>
 </head>
 <body>
 	<div id="page">
@@ -98,6 +103,7 @@ $(window).load(function() {
         }else if(type == "nonet"){
             window.location.href='<%=luci.dispatcher.build_url("admin_web", "guide", "internet_success")%>'+'?type=nonet&autotype='+autotype;
         }
+        return false;
     });
     
     $("#submit").click(function(){
@@ -106,12 +112,14 @@ $(window).load(function() {
         }else{
             form_submit();
         }
+        return false;
     });
     
     test_wan();
     
     $("#forse_next").click(function(){
         link_success();
+        return false;
     });
 });
 
@@ -198,7 +206,9 @@ function get_wan_info(success_callback, failed_callback){
         success: function(rsp){
             if(rsp.isethlink == 0){
                 setting = false;
-                failed_callback('网线未插');
+                var skip_url = '<%=luci.dispatcher.build_url("admin_web", "guide", "internet_success")%>'+'?type=nonet';
+                skip_url = '&nbsp;&nbsp;&nbsp;&nbsp;'+'<a class="skip_btn" href="'+skip_url+'"><%:跳过此步%></a>'
+                failed_callback('网线未插'+skip_url);
             } else if (rsp.isconn == 0){
                 failed_callback('连接超时，请重试');
             } else {
@@ -224,6 +234,7 @@ function test_wan(){
 
 function link_success(){
     window.location.href='<%=luci.dispatcher.build_url("admin_web", "guide","internet_success")%>';
+    return false;
 }
 
 </script>

@@ -1,5 +1,5 @@
 Package: ppp-mod-pptp
-Version: 2.4.5-20140807
+Version: 2.4.5-20141010
 Depends: libc, kmod-pptp, kmod-mppe, resolveip
 Provides: 
 Source: package/network/services/ppp
@@ -9,5 +9,5 @@ Essential: no
 Priority: optional
 Maintainer: Jo-Philipp Wich <xm@subsignal.org>
 Architecture: ralink
-Installed-Size: 16053
+Installed-Size: 16094
 Description:  This package contains a PPtP plugin for ppp.

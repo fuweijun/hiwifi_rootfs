@@ -1,0 +1,7 @@
+
+config notice 'new_qos'
+	option nid 'new_qos'
+	option sys_version_like '0.9006.'
+	option read '1'
+	option title '通知'
+	option content '云插件平台“智能QoS”插件已平移至本版本ROM中，并新增测速功能；<br/>请在“<a id="moresetup_link">高级设置</a>”->“<a id="qos_link">智能QoS</a>”菜单中设置管理'

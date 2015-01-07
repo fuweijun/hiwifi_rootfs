@@ -2,7 +2,7 @@
 local ver  = require "luci.version"
 local util  = require "luci.util"
 local http = require "luci.http"
-local autotype = util.fliter_unsafe(http.formvalue("autotype"))
+local autotype = http.formvalue_htmlencode("autotype")
 %>
 <!DOCTYPE html>
 <html>
@@ -63,6 +63,7 @@ $(window).load(function() {
             find_pppoe_account();
             setTimeout("stop_check()", timeout);
         }
+        return false;
     });
 });
 

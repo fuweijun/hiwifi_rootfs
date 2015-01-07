@@ -14,10 +14,10 @@
 /etc/hotplug2-common.rules
 /etc/shells
 /lib/preinit/70_initramfs_test
-/lib/storage.sh
 /lib/preinit/50_choose_console
 /lib/firstboot/10_no_fo_clear_overlay
 /etc/protocols
+/sbin/storage
 /etc/uci-defaults/wlan
 /sbin/preupgrade.sh
 /lib/preinit/20_check_jffs2_ready
@@ -27,8 +27,8 @@
 /etc/hotplug.d/gmac/wan/02-dhcp-operation
 /lib/wifi/ralink.sh
 /lib/firstboot/99_10_with_fo_cleanup
+/usr/sbin/guide_done.sh
 /etc/hotplug.d/button/00-button
-/sbin/sdfunc.sh
 /lib/functions/net_update_actions.sh
 /etc/config/system
 /sbin/powerport.sh
@@ -56,7 +56,6 @@
 /lib/preinit/40_init_shm
 /init
 /etc/init.d/watchdog
-/sbin/sdcheck.sh
 /sbin/setled
 /lib/preinit/40_mount_jffs2
 /lib/preinit/20_device_fs_mount
@@ -64,6 +63,7 @@
 /lib/preinit/80_mount_root
 /etc/rc.local
 /lib/functions/uci-defaults.sh
+/lib/functions/storage.sh
 /etc/init.d/led
 /lib/functions/network.sh
 /etc/init.d/sysctl
@@ -72,7 +72,6 @@
 /sbin/hotplug-call
 /etc/init.d/usb
 /lib/platform.sh
-/etc/wlan/MT7610E-V10-FEM-1ANT-20130529.bin
 /lib/preinit/40_mount_devpts
 /lib/preinit/90_init_console
 /etc/services
@@ -80,7 +79,6 @@
 /lib/preinit/10_check_for_mtd
 /lib/upgrade/common.sh
 /etc/hotplug.d/block/action.d/varlog-sync2disk
-/sbin/sdtest.sh
 /etc/uci-defaults/board-spec
 /etc/sysupgrade.conf
 /lib/firstboot/05_firstboot_skip
@@ -91,14 +89,12 @@
 /etc/group
 /etc/uci-defaults/migrate-sysctl
 /lib/preinit/30_failsafe_wait
-/etc/init.d/leds-stats
 /etc/functions.sh
 /sbin/firstboot
 /bin/login.sh
 /etc/hosts
 /etc/uci-defaults/migrate-shadow
 /etc/hotplug.d/usb/10-usb
-/etc/wlan/MT7620_AP_2T2R-4L_V15.BIN
 /lib/functions.sh
 /lib/preinit/60_init_hotplug
 /etc/hotplug.d/block/action.d/10-sysupgrade-log
@@ -116,7 +112,6 @@
 /lib/preinit/04_config_vlan
 /etc/profile
 /etc/uci-defaults/buttons
-/etc/wlan/MT7612E_EEPROM.bin
 /lib/preinit/99_10_failsafe_login
 /etc/TZ
 /lib/firstboot/20_no_fo_mount_jffs
@@ -135,7 +130,6 @@
 /lib/firstboot/40_copy_ramoverlay
 /etc/init.d/boot
 /etc/hotplug.d/gmac/wan/01-net-update-act
-/sbin/storage_format
 /etc/uci-defaults/system_defaults
 /lib/functions/boot.sh
 /bin/ipcalc.sh

@@ -9,5 +9,5 @@ Essential: no
 Priority: optional
 Maintainer: Abu Cheng <abu.zheng@hiwifi.tw>
 Architecture: ralink
-Installed-Size: 73703
+Installed-Size: 73848
 Description:  This package contains a IEEE 802.1x/WPA Authenticator.

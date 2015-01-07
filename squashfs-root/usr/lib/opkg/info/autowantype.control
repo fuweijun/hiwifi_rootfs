@@ -9,7 +9,7 @@ Essential: no
 Priority: optional
 Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
 Architecture: ralink
-Installed-Size: 4494
+Installed-Size: 4489
 Description:  autowantype: 1  means PPPOE
  autowantype: 2  means DHCP
  autowantype: 3  means Manual

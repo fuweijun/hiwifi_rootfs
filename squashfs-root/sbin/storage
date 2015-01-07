@@ -1,0 +1,83 @@
+#!/bin/sh
+# Copyright (C) 2013-2014 www.hiwifi.com
+
+. /lib/functions/storage.sh
+
+HWF_STORAGE_GET=0
+HWF_STORAGE_FORMAT=0
+
+# change dir to tmp
+cd /tmp
+
+if [ -n "$1" ]; then
+	case "$1" in
+	get)
+		HWF_STORAGE_GET=1;;
+	format)
+		HWF_STORAGE_FORMAT=1;;
+	*)
+		exit 1
+	;;
+	esac
+fi
+
+if [ $HWF_STORAGE_GET -gt 0 -a -n "$2" ]; then
+	case "$2" in
+	"type")
+		s_type=$(uci get hiwifi.storage.type)
+		echo "$s_type"
+		;;
+	"state")
+		s_state=$(hiwifi_storage_get_state)
+		echo "$s_state"
+		;;
+	"info")
+		if [ -f $STORAGE_STATE_FILE -a -f $STORAGE_INFO_FILE ]; then
+			s_size=$(hiwifi_get_storage_size)
+			s_fstype=$(hiwifi_get_storage_fstype)
+			s_status=$(hiwifi_get_storage_status)
+			s_freesize=$(hiwifi_get_storage_freesize)
+			echo "size=$s_size"
+			echo "fstype=$s_fstype"
+			echo "status=$s_status"
+			echo "freesize=$s_freesize"
+		else
+			echo ""
+		fi
+		;;
+	"size")
+		s_size=$(hiwifi_get_storage_size)
+		echo "$s_size"
+		;;
+	"fstype")
+		s_fstype=$(hiwifi_get_storage_fstype)
+		echo "$s_fstype"
+		;;
+	"status")
+		s_status=$(hiwifi_get_storage_status)
+		echo "$s_status"
+		;;
+	"freesize")
+		s_freesize=$(hiwifi_get_storage_freesize)
+		echo "$s_freesize"
+		;;
+	"minsize")
+		s_minsize=$(uci get hiwifi.storage.minsize)
+		echo "$s_minsize"
+		;;
+	esac
+fi
+
+
+if [ $HWF_STORAGE_FORMAT -gt 0 ]; then
+	if [ "$2" == "force" ]; then
+		hiwifi_storage_format "1"
+		return $?
+	elif [ "$2" == "manual" ]; then
+		hiwifi_storage_format "2"
+		return $?
+	else
+		hiwifi_storage_format "0"
+		return $?
+	fi
+fi

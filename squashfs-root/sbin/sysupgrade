@@ -14,7 +14,6 @@ export CONF_BACKUP=
 export CONF_RESTORE=
 export HELP=0
 export FORCE=0
-export SYSUPGRADE_LOG="/tmp/data/sysupgrade_log"
 
 # parse options
 while [ -n "$1" ]; do 
@@ -128,6 +127,18 @@ do_save_conffiles() {
 	tar c${TAR_V}zf "$conf_tar" -T "$CONFFILES" 2>/dev/null
 }
 
+do_backup_conffiles() {
+	local hwf_config_mtd="hwf_config"
+	local mtdpart="$(find_mtd_part $hwf_config_mtd)"
+
+	[ -z "$mtdpart" ] && return 1
+
+	mtd -q erase $hwf_config_mtd
+	if [ "$SAVE_CONFIG" -eq "1" ]; then
+		mtd -q write "$CONF_TAR" $hwf_config_mtd
+	fi
+}
+
 if [ -n "$CONF_BACKUP" ]; then
 	do_save_conffiles "$CONF_BACKUP"
 	exit $?
@@ -173,6 +184,9 @@ elif ask_bool $SAVE_CONFIG "Keep config files over reflash"; then
 else
 	export SAVE_CONFIG=0
 fi
+
+# backup conffiles
+do_backup_conffiles
 
 run_hooks "" $sysupgrade_pre_upgrade
 

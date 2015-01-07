@@ -1,14 +1,14 @@
 Package: nginx
-Version: 1.4.1-aqjh.cloud.20140821
+Version: 1.4.1-aqjh.cloud.20140820
 Depends: libc, libpcre, lua, zlib, libpthread, liblua, libopenssl, libqos
 Provides: 
-Source: /home/build/hiwifi/branch/release0.9005/HC5661/package/nginx-cloud
+Source: /ROOT/diskb/hiwifi/branch/release0.9007/HC5661/package/nginx-cloud
 Section: net
 Status: unknown ok not-installed
 Essential: no
 Priority: optional
 Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
 Architecture: ralink
-Installed-Size: 350867
+Installed-Size: 351880
 Description:  nginx is an HTTP and reverse proxy server, as well as a mail proxy server,
  written by Igor Sysoev.

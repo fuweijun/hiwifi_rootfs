@@ -7,7 +7,7 @@
 
 local ver  = require "luci.version"
 local adv_menu = luci.util.get_adv_menu()
-local request_uri = luci.http.getenv("REQUEST_URI")
+local request_uri = luci.http.getenv_htmlencode("REQUEST_URI")
 
 local upnp_file = "/var/upnp.leases"
 local nixio = require "nixio"
@@ -32,54 +32,44 @@ local nixio = require "nixio"
 		width:120px;
 		line-height:14px;
 	}
+	#loading{
+        display: none;
+    }
+    .item-txt .notice{
+        color: #d84613;
+    }
 </style>
 <div class="title">
 	<h2>高级设置<i>设置路由器安全 , 及其他高级设置</i></h2>
 </div>
 <div class="menu">
-	<% luci.util.output_adv_menu() %>
+	<% include("admin_web/menu/adv_menu") %>
 </div>
 <div class="box setup_box">
 	<form id="form1"> 
 	<ul class="ullist">
 	<li>
-		<div class="memu row">
-			<p><label>UPNP 状态</label><br><br>
-			<table width="460" border="1" cellpadding="0" cellspacing="0" bordercolor="#f0f0f0">
-			<tbody><tr align="center">
+	    <div class="memu" style="padding-left:10%">
+            <p class="item-txt">
+                <span class="on-off" style="font-size:14px;">
+                    <%:开关%><button type="button" class="on" style="margin-left:20px;"><%:开关%></button>
+                </span>
+                <span class="notice"><%:（温馨提示：频繁切换开关会导致UPNP开启后列表无法正常显示）%></span>
+            </p>
+            <div id="loading"><%:处理中%>...</div>
+        </div>
+		<div id="upnp_area" class="memu row" style="padding-left:10%">
+		    <div class="form-row">
+			<p><label>UPNP 状态</label><br><br></p>
+			</div>
+			<table id="upnp_table" width="460" border="1" cellpadding="0" cellspacing="0" bordercolor="#f0f0f0">
+			<tbody id="upnp_tbody"><tr align="center">
 				<th scope="col" bgcolor="#f4f4f4">应用描述</th>
 				<th width="50" scope="col" bgcolor="#f4f4f4">外部端口</th>
 				<th width="50" scope="col" bgcolor="#f4f4f4">协议类型</th>
 				<th width="50" scope="col" bgcolor="#f4f4f4">内部端口</th>
 				<th width="150" scope="col" bgcolor="#f4f4f4">IP 地址</th>
 			</tr>
-			<%
-			local strings = require "hiwifi.strings"
-			if nixio.fs.access(upnp_file) then 
-				local fd = io.open(upnp_file, "r")
-				if fd then 
-					while true do
-						ln = fd:read("*l")
-						if not ln then
-							break
-						else
-							local data = strings.split(ln, ":", 999, true)
-							
-							%>
-							<tr align="center">
-								<td><%luci.http.write(data[6])%></td>
-								<td><%luci.http.write(data[2])%></td>
-								<td><%luci.http.write(data[1])%></td>
-								<td><%luci.http.write(data[4])%></td>
-								<td><%luci.http.write(data[3])%></td>
-							</tr>
-							<%
-						end
-					end
-				end
-			end
-			%>
-			
 		</tbody></table>
 		</div>
 	</li>
@@ -88,4 +78,123 @@ local nixio = require "nixio"
 </div>
 
 </body>
+<script type="text/javascript">
+
+$(function(){
+    var upnp_status = function(){
+        //upnp/status 
+        var request_date = {}; 
+        $.getJSON("<%=luci.dispatcher.build_url("api", "upnp","status")%>",request_date,function(rsp) 
+        {
+           if(rsp.code == 0){
+               var state = rsp.data.state;
+               init_upnp_status(state);
+               var upnp_list = rsp.data.upnp_list;
+               update_upnp_list(upnp_list);
+           }
+        })
+    }
+    
+    var xss = function(str){
+        if(str){
+            return str.replace(/</g,"&lt;").replace(/>/g,"&gt;")
+        }else{
+            return str
+        }
+    }
+
+    var update_upnp_list = function(data){
+        console.log(data)
+        if(data){
+            $("tr").remove(".upnp_line");
+            var all_upnp_line_html = "";
+            for(var i=0; i< data.length; i++){
+                var line = data[i];
+                var desc = xss(line['desc'])
+                var out_port = xss(line['out_port'])
+                var protocol = xss(line['protocol'])
+                var in_port = xss(line['in_port'])
+                var ip = xss(line['ip'])
+                var upnp_line_html = '<tr align="center" class="upnp_line">'+
+                                        '<td>'+desc+'</td>'+
+                                        '<td>'+out_port+'</td>'+
+                                        '<td>'+protocol+'</td>'+
+                                        '<td>'+in_port+'</td>'+
+                                        '<td>'+ip+'</td>'+
+                                        '</tr>'
+                all_upnp_line_html = all_upnp_line_html + upnp_line_html
+            }
+            $("#upnp_tbody").append(all_upnp_line_html);
+        }else{
+            $("tr").remove(".upnp_line");
+        }
+    }
+    
+    var init_upnp_status = function(data){
+        var switch_b = $(".on-off").children("button");
+        if(data == true){
+            switch_b.attr("class", "on")
+            $("#upnp_area").show();
+        }else{
+            switch_b.attr("class", "off")
+            $("#upnp_area").hide();
+        }
+    }
+    
+    var start_upnp = function(success_callback){
+        $.post("<%=luci.dispatcher.build_url("api", "upnp","start")%>",{},function(rsp)
+        {
+            if(rsp.code == 0){
+                if(typeof(success_callback) == "function"){
+                    success_callback(rsp)
+                }
+            }
+        })
+    }
+
+    var stop_upnp = function(success_callback){
+        $.post("<%=luci.dispatcher.build_url("api", "upnp","stop")%>",{},function(rsp)
+        {
+            if(rsp.code == 0){
+                if(typeof(success_callback) == "function"){
+                    success_callback(rsp)
+                }
+            }
+        })
+    }
+
+    var loading_show = function(show){
+        if(show == true){
+            $("#loading").show();
+        }else{
+            $("#loading").hide();
+        }
+    }
+    
+    $(".on-off").click(function(){
+        var switch_b = $(this).children("button");
+        var status_now = switch_b.attr("class");
+        if(status_now == "on"){
+            loading_show(true)
+            stop_upnp(function(){
+                setTimeout(function(){
+                    upnp_status()
+                    loading_show(false)
+                }, 2000);
+            });
+        } else {
+            loading_show(true)
+            start_upnp(function(){
+                setTimeout(function(){
+                    upnp_status()
+                    loading_show(false)
+                }, 2000);
+            });
+        }
+    })
+    
+    upnp_status();
+})
+
+</script>
 </html>

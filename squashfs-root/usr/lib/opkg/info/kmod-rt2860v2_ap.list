@@ -1,3 +1,3 @@
 /lib/modules/3.3.8/rt2860v2_ap.ko
-/etc/modules-boot.d/27-rt2860v2_ap
 /etc/modules.d/27-rt2860v2_ap
+/etc/wlan/MT7620_AP_2T2R-4L_V15.BIN

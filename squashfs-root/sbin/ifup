@@ -50,6 +50,7 @@ if [ -n "$ifup_all" ]; then
 	[ -n "$setup_wifi" ] && /sbin/wifi up
 	exit
 else
+	ubus -t 3 wait_for network.interface.$1 2> /dev/null
 	ubus -S list "network.interface.$1" > /dev/null || {
 		echo "Interface $1 not found"
 		exit

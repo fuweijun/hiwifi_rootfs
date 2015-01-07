@@ -9,5 +9,5 @@ Essential: yes
 Priority: optional
 Maintainer: Felix Fietkau <nbd@openwrt.org>
 Architecture: ralink
-Installed-Size: 4865
+Installed-Size: 4860
 Description:  POSIX.1b RealTime extension library

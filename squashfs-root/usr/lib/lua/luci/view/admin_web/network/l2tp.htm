@@ -34,7 +34,7 @@ local ver  = require "luci.version"
 	<h2>高级设置<i>设置路由器安全 , 及其他高级设置</i></h2>
 </div>
 <div class="menu">
-	<% luci.util.output_adv_menu() %>
+	<% include("admin_web/menu/adv_menu") %>
 </div>
 
 <div class="box setup_box">
@@ -81,6 +81,7 @@ local ver  = require "luci.version"
 				<span>
 					<input type="checkbox" name="mppe" id="mppe" value="1" class="txt" style="width:auto;">
 				</span>
+				<label style="color: #999; font-size: 12px">(多次连接失败时，可尝试勾选此项)</label>
 				</p> 
 			</div>
 			<div class="form-row">	
@@ -108,8 +109,7 @@ $(function(){
     //Check status timer
     var get_l2tp_vpn_status_timer;
     var clear_l2tp_vpn_status_timer;
-	//$.ajaxSettings.async = false;
-	//network/get_lan_info 
+    var do_update_status = true;
 
     function set_mppe(proto, mppe){
         if(proto == 'pptp'){
@@ -122,12 +122,40 @@ $(function(){
         }
     }
     
+    function update_status(status){
+        if(do_update_status!=true){
+            return;
+        }
+        var status_html = "未知"
+        if(status == "stopped"){
+            status_html = "<span style='color:red'>未连通</span>";
+            $("#shutdown_l2tp_vpn").hide();
+            $("#start_l2tp_vpn").show();
+        } else if (status == "running") {
+            status_html = "已连通";
+            $("#shutdown_l2tp_vpn").show();
+            $("#start_l2tp_vpn").hide();
+        } else if (status == "dialing") {
+            status_html = "正在连接...";
+            $("#shutdown_l2tp_vpn").show();
+            $("#start_l2tp_vpn").hide();
+        } else if (status == "processing") {
+            status_html = "<%:处理中%>...";
+            $("#shutdown_l2tp_vpn").show();
+            $("#start_l2tp_vpn").hide();
+        } else {
+            status_html = "未知";
+            $("#shutdown_l2tp_vpn").show();
+            $("#start_l2tp_vpn").show();
+        }
+        $("#con_stauts").html(status_html);
+    }
+    
     function get_l2tp_vpn(){
         $("#start_l2tp_vpn").hide();
         $("#shutdown_l2tp_vpn").hide();
-    	//network/get_l2tp_vpn 
     	var request_date = {}; 
-    	$.getJSON("<%=luci.dispatcher.build_url("api", "network","get_l2tp_vpn")%>",request_date,function(rsp) 
+    	$.getJSON("<%=luci.dispatcher.build_url("api", "vpn","get_l2tp_vpn")%>",request_date,function(rsp) 
     	{ 
     		$("#submit_btn").attr("disabled",false);
     	 	if (rsp.code == 0){
@@ -141,56 +169,17 @@ $(function(){
     			if (rsp.auto == "1"){
     				$("input[name='auto']").attr("checked","checked");
     			}
-    			var status_html = "未知"
-    			if(rsp.status == "stopped"){
-    				status_html = "<span style='color:red'>未连通</span>";
-    				$("#shutdown_l2tp_vpn").hide();
-    				$("#start_l2tp_vpn").show();
-    			} else if (rsp.status == "running") {
-    				status_html = "已连通";
-    				$("#shutdown_l2tp_vpn").show();
-    				$("#start_l2tp_vpn").hide();
-    			} else if (rsp.status == "dialing") {
-                    status_html = "正在连接...";
-                    $("#shutdown_l2tp_vpn").show();
-                    $("#start_l2tp_vpn").hide();
-                    check_l2tp_vpn_status();
-                } else {
-    				status_html = "未知";
-    				$("#shutdown_l2tp_vpn").show();
-    				$("#start_l2tp_vpn").show();
-    			}
-    			$("#con_stauts").html(status_html);
+    			update_status(rsp.status)
     			set_mppe(rsp.proto, rsp.mppe);
     	 	}
     	})
     }
     
     function get_l2tp_vpn_status(success_callback){
-        //network/get_l2tp_vpn 
         var request_date = {}; 
-        $.getJSON("<%=luci.dispatcher.build_url("api", "network","get_l2tp_vpn")%>",request_date,function(rsp) 
+        $.getJSON("<%=luci.dispatcher.build_url("api", "vpn","get_l2tp_vpn")%>",request_date,function(rsp) 
         { 
             if (rsp.code == 0){
-                var status_html = "未知"
-                if(rsp.status == "stopped"){
-                    status_html = "<span style='color:red'>未连通</span>";
-                    $("#shutdown_l2tp_vpn").hide();
-                    $("#start_l2tp_vpn").show();
-                } else if (rsp.status == "running") {
-                    status_html = "已连通";
-                    $("#shutdown_l2tp_vpn").show();
-                    $("#start_l2tp_vpn").hide();
-                } else if (rsp.status == "dialing") {
-                    status_html = "正在连接...";
-                    $("#shutdown_l2tp_vpn").show();
-                    $("#start_l2tp_vpn").hide();
-                }  else {
-                    status_html = "未知";
-                    $("#shutdown_l2tp_vpn").show();
-                    $("#start_l2tp_vpn").show();
-                }
-                $("#con_stauts").html(status_html);
                 if(typeof(success_callback) == "function"){
                     success_callback(rsp.status);
                 }
@@ -198,13 +187,12 @@ $(function(){
         })
     }
     
-    function start_l2tp_vpn(hide_alert){
+    function start_l2tp_vpn(hide_alert, success_callback){
 		$("#loading2").show();
 		$("#submit_btn").attr("disabled",true);
 		
-		//network/set_l2tp_vpn 
 		var request_date =  $("#form1").serializeArray(); 
-		$.getJSON("<%=luci.dispatcher.build_url("api", "network","start_l2tp_vpn")%>",request_date,function(rsp) 
+		$.getJSON("<%=luci.dispatcher.build_url("api", "vpn","start_l2tp_vpn")%>",request_date,function(rsp) 
 		{ 
 		    if(typeof(hide_alert) != "undefined" && hide_alert == true){
 		    }else{
@@ -217,16 +205,18 @@ $(function(){
 			
 			$("#loading2").hide();
 			$("#submit_btn").attr("disabled",false);
+			if(typeof(success_callback) == "function"){
+                success_callback();
+            }
 		})
     }
     
-    function shutdown_l2tp_vpn(hide_alert){
+    function shutdown_l2tp_vpn(hide_alert, success_callback){
         $("#loading2").show();
         $("#submit_btn").attr("disabled",true);
         
-        //network/set_l2tp_vpn 
         var request_date =  $("#form1").serializeArray(); 
-        $.getJSON("<%=luci.dispatcher.build_url("api", "network","shutdown_l2tp_vpn")%>",request_date,function(rsp) 
+        $.getJSON("<%=luci.dispatcher.build_url("api", "vpn","shutdown_l2tp_vpn")%>",request_date,function(rsp) 
         { 
             if(typeof(hide_alert) != "undefined" && hide_alert == true){
             }else{
@@ -239,6 +229,9 @@ $(function(){
             
             $("#loading2").hide();
             $("#submit_btn").attr("disabled",false);
+            if(typeof(success_callback) == "function"){
+                success_callback();
+            }
         })
     }
     
@@ -246,9 +239,8 @@ $(function(){
         $("#loading2").show();
         $("#submit_btn").attr("disabled",true);
         
-        //network/set_l2tp_vpn 
         var request_date =  $("#form1").serializeArray(); 
-        $.getJSON("<%=luci.dispatcher.build_url("api", "network","set_l2tp_vpn")%>",request_date,function(rsp) 
+        $.getJSON("<%=luci.dispatcher.build_url("api", "vpn","set_l2tp_vpn")%>",request_date,function(rsp) 
         { 
             
             if(rsp.code == 0){
@@ -265,9 +257,22 @@ $(function(){
         })
     }
     
-    function restart_l2tp_vpn(hide_alert){
-        shutdown_l2tp_vpn(hide_alert);
-        start_l2tp_vpn(hide_alert);
+    function restart_l2tp_vpn(hide_alert, success_callback){
+        var request_date = {};
+        $.getJSON("<%=luci.dispatcher.build_url("api", "vpn","restart")%>",request_date,function(rsp) 
+        { 
+            if(typeof(hide_alert) != "undefined" && hide_alert == true){
+            }else{
+                if(rsp.code == 0){
+                    art.dialog({icon:"succeed",title:false,content:""}).lock().time(2);
+                } else {
+                    art.dialog({icon:"error",title:false,content:rsp.msg}).lock().time(4);
+                }
+            }
+            if(typeof(success_callback) == "function"){
+                success_callback();
+            }
+        })
     }
 
 	$("#start_l2tp_vpn").click(function(){
@@ -281,36 +286,47 @@ $(function(){
 	})
 	
 	$("#get_l2tp_vpn_status").click(function(){
-		get_l2tp_vpn_status();
+		get_l2tp_vpn_status(function(status){
+          update_status(status)
+        });
 	})
 	
 	//提交
 	$("#submit_btn").click(function(){
+	    update_status("processing")
+	    stop_check_l2tp_vpn_status()
 		set_l2tp_vpn(function(){
 		   get_l2tp_vpn_status(function(status){
 		      if(status == "running" || status == "dialing"){
-		          restart_l2tp_vpn(true);
+		          restart_l2tp_vpn(true, function(){
+        		      check_l2tp_vpn_status();
+		          });
 		      }else{
-		          shutdown_l2tp_vpn(true);
+		          shutdown_l2tp_vpn(true, function(){
+                      check_l2tp_vpn_status();
+                  });
 		      }
-		      check_l2tp_vpn_status();
 		   });
 		});
 	})
 	
+	function stop_check_l2tp_vpn_status(){
+	  do_update_status = false;
+      if(get_l2tp_vpn_status_timer){
+          window.clearInterval(get_l2tp_vpn_status_timer);
+      }
+	}
+	
 	function check_l2tp_vpn_status(){
+	  do_update_status = true;
 	  if(get_l2tp_vpn_status_timer){
           window.clearInterval(get_l2tp_vpn_status_timer);
       }
-	  if(clear_l2tp_vpn_status_timer){
-          window.clearTimeout(clear_l2tp_vpn_status_timer);
-      }
       get_l2tp_vpn_status_timer = window.setInterval(function(){
-          get_l2tp_vpn_status();
+          get_l2tp_vpn_status(function(status){
+              update_status(status)
+          });
       }, 5000);
-      clear_l2tp_vpn_status_timer = window.setTimeout(function(){
-          window.clearInterval(get_l2tp_vpn_status_timer);
-      }, 120000)
 	}
 	
 	$('#proto').change(function(){
@@ -323,6 +339,7 @@ $(function(){
 	})
 	
 	get_l2tp_vpn();
+	check_l2tp_vpn_status();
 })
 
 </script>

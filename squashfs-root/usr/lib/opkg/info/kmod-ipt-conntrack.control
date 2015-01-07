@@ -9,7 +9,7 @@ Essential: no
 Priority: optional
 Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
 Architecture: ralink
-Installed-Size: 34798
+Installed-Size: 34803
 Description:  Netfilter (IPv4) kernel modules for connection tracking
  Includes:
  - conntrack

@@ -1,12 +1,12 @@
 <%
-	local urlbackReq = luci.util.fliter_unsafe(luci.http.formvalue("urlback"))
+	local urlbackReq = luci.http.formvalue_htmlencode("urlback")
 	if urlbackReq == nil or urlbackReq==""  then
-		urlbackReq = luci.http.getenv("HTTP_REFERER")
+		urlbackReq = luci.http.getenv_htmlencode("HTTP_REFERER")
 	end
-	local clinet_bind = luci.http.formvalue("clinet_bind")
-	local guide_mode = luci.http.formvalue("guide_mode")
-	local auto_login = luci.http.formvalue("auto_login")
-	local isshow = luci.http.formvalue("isshow")
+	local clinet_bind = luci.http.formvalue_htmlencode("clinet_bind")
+	local guide_mode = luci.http.formvalue_htmlencode("guide_mode")
+	local auto_login = luci.http.formvalue_htmlencode("auto_login")
+	local isshow = luci.http.formvalue_htmlencode("isshow")
 	
 	--是否弹出协议
 	local agreementfile = "/etc/agreement"
@@ -100,12 +100,14 @@ end
 		font-size:18px;
 	}
 </style>
-<script type="text/javascript">//<![CDATA[	
+<script type="text/javascript">
+//<![CDATA[
 	function check_form(obj){
 		$("#submit_btn").attr("disabled","disabled");
 		return true;
 	}
-//]]></script>
+//]]>
+</script>
 <!-- this_line_is_for_loginpage_cache_donot_delete -->
 <div class="sd-top-tip" style="display:none">
     <span class="sd-icon-warn-s"></span>
@@ -156,7 +158,7 @@ end
 		<% end %>
 </form>
 <script type="text/javascript">
-<!--
+//<![CDATA[
 $(function(){
     var auto_login = '<%=auto_login%>';
     var loginfail = '<%=loginfail%>';
@@ -172,32 +174,51 @@ $(function(){
 	get_sd_state();
 })
 
+function translate(key){
+    return translator.translate(key);
+}
+    
 function get_sd_state(){
     var myDate = new Date();
     var mill = myDate.getTime();
     var request_data = {};
-    $.getJSON('<%=luci.dispatcher.build_url("api", "system", "sd_state")%>?'+mill,request_data,function(rsp) 
+    $.getJSON('<%=luci.dispatcher.build_url("api", "storage", "state")%>?'+mill,request_data,function(rsp) 
     { 
         var msg = rsp.msg;
         var code = rsp.code;
         var state = rsp.state;
-        var sdsize = rsp.sdsize;
+        var sdsize = rsp.size;
         var minsize = rsp.minsize;
+        var type = "";
+        if(rsp.data){
+            type = rsp.data.type;
+        }
         if(code == 0 || code == "0"){
-            if(state == "removed"){
-                $("#sd_info").html("未插入SD卡");
-                $(".sd-top-tip").show();
-            }else if(state == "not-formated"){
-                if(sdsize < minsize){
-                    $("#sd_info").html("SD卡太小，最低要求"+minsize+"M，当前"+sdsize+"M");
+            if(type != 'NULL'){
+                if(state == "removed"){
+                    $("#sd_info").html("未插入"+translate(type));
                     $(".sd-top-tip").show();
-                }else{
-                    $("#sd_info").html("您的SD卡文件格式不符，请登录后格式化");
+                }else if(state == "not-formated" || state == "mount-failed"){
+                    var msg = ""
+                    if(storage.compare_size(sdsize, minsize) < 0){
+                        msg = translate(type)+"太小，最低要求"+storage.conversion(minsize, 'G')+"，当前"+storage.conversion(sdsize, 'G')
+                    }else{
+                        msg = "您的"+translate(type)+"文件格式不符，请登录后格式化。"
+                    }
+                    $("#sd_info").html(msg);
+                    $(".sd-top-tip").show();
+                }else if(state == "inserted" || state == "umounted"){
+                    
+                }else if(state == "mounted"){
+                    $(".sd-top-tip").hide();
+                }else if(state == "auto-formated"){
+                    $("#sd_info").html(translate(type)+"正在格式化中...");
+                    $(".sd-top-tip").show();
+                }else if(state == "lock"){
+                    $("#sd_info").html("扩展存储为只读模式");
                     $(".sd-top-tip").show();
                 }
-            }else if(state == "inserted" || state == "umounted"){
-                
-            }else if(state == "mounted"){
+            }else{
                 $(".sd-top-tip").hide();
             }
             setTimeout("get_sd_state()", 5000);
@@ -208,9 +229,7 @@ function get_sd_state(){
     });
     
 }
-//-->
-
-
+//]]>
 </script>
 <%if clinet_bind == "1" or clinet_bind == 1 then luci.http.close() end%>
 <%+footer%>

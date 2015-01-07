@@ -3,9 +3,9 @@ local ver  = require "luci.version"
 local util  = require "luci.util"
 local http = require "luci.http"
 
-local autotype = util.fliter_unsafe(http.formvalue("autotype"))
-local findsuccess = http.formvalue("findsuccess")
-local from = http.formvalue("from")
+local autotype = http.formvalue_htmlencode("autotype")
+local findsuccess = http.formvalue_htmlencode("findsuccess")
+local from = http.formvalue_htmlencode("from")
 
 local msgResp_set
 
@@ -75,9 +75,9 @@ end
                         </td>
                     </tr>
                 </table>
-				<a href="<%=luci.dispatcher.build_url("admin_web", "guide", "pppoe_find")%>?autotype=<%=autotype%>" class="btn radius" style="color: white; background-color: green; border: 0px;">马上找回宽带密码</a>
-				<p id="errormsg" class="error"></p>
 				<a id="submit" href="javascript:void(0);" class="btn radius" style="margin-top:10px;">拨号上网</a>
+				<p id="errormsg" class="error"></p>
+				<a href="<%=luci.dispatcher.build_url("admin_web", "guide", "pppoe_find")%>?autotype=<%=autotype%>" class="btn radius" style="color: white; background-color: green; border: 0px;">忘记宽带密码？立即找回</a>
 				<a id="forse_next" href="javascript:void();" class="link skip" style="display:none">跳过</a>
 			</form>
 
@@ -145,18 +145,22 @@ $(window).load(function() {
         }else if(type == "nonet"){
             window.location.href='<%=luci.dispatcher.build_url("admin_web", "guide", "internet_success")%>'+'?type=nonet&autotype='+autotype;
         }
+        return false;
     });
     
     listerenterkeydown(function(){
         form_submit();
+        return false;
     });
     
     $("#submit").click(function(){
        form_submit();
+       return false;
     });
     
     $("#forse_next").click(function(){
         link_success();
+        return false;
     });
 });
 
@@ -341,6 +345,7 @@ function update_ppp_status_view(){
 
 function link_success(){
     window.location.href='<%=luci.dispatcher.build_url("admin_web", "guide","internet_success")%>';
+    return false;
 }
 
 </script>

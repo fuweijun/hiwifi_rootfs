@@ -24,7 +24,8 @@ platform_check_image() {
 
 	case "$board" in
 	HC5661 | HC5761 | HB5981m | HB5981s | HC5641 | HC5663 | HC5861 |\
-	HB5881 | BL-H750AC | BL-855R | HB5811)
+	HB5881 | BL-H750AC | BL-T8100 | BL-855R | HB5811 | ZC-9526 | ZC-9527 | ZC-9525 |\
+	HC5762)
 		[ "$magic_long" != "27051956" -a "$magic" != "2705" -a "$magic_boot" != "ff00001000000000fd00001000000000" ] && {
 			echo "Invalid image type."
 			return 1
@@ -51,12 +52,8 @@ platform_do_upgrade() {
 	local board=$(tw_board_name)
 
 	case "$board" in
-	HC5661 | HC5761 | HB5981m | HB5981s | HC5641 | HC5663 | HC5861 |\
-	HB5881 | BL-H750AC | BL-855R | HB5811)
-		platform_do_upgrade_hiwifi "$ARGV"
-		;;
 	*)
-		default_do_upgrade "$ARGV"
+		platform_do_upgrade_hiwifi "$ARGV"
 		;;
 	esac
 }
@@ -77,9 +74,9 @@ platform_pre_upgrade() {
 	# disable ethernet and wifi
 	setled off green wlan-2p4
 	setled off green wlan-5p
-	rmmod rt2860v2_ap 2>/dev/null
-	rmmod MT7610_ap 2>/dev/null
-	ifconfig eth2 down
+	rmmod rt2860v2_ap &>/dev/null
+	rmmod MT7610_ap &>/dev/null
+	ifconfig eth2 down &>/dev/null
 }
 
 disable_watchdog() {

@@ -2,12 +2,12 @@ Package: census
 Version: 1.0.1-20140409
 Depends: libc
 Provides: 
-Source: /home/build/hiwifi/branch/release0.9005/HC5661/package/census
+Source: /ROOT/diskb/hiwifi/branch/release0.9007/HC5661/package/census
 Section: opt
 Status: unknown ok not-installed
 Essential: no
 Priority: optional
 Maintainer: HiWiFi Developer <a@hiwifi.tw>
 Architecture: ralink
-Installed-Size: 1079
+Installed-Size: 1082
 Description:  scripts for cmagent census

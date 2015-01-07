@@ -7,12 +7,12 @@
 
 local path  = luci.dispatcher.context.requestpath
 local action = path[#path]
-local code_bk = luci.http.formvalue("code")
+local code_bk = luci.http.formvalue_htmlencode("code")
 
-local guide_mode = luci.http.formvalue("guide_mode")
+local guide_mode = luci.http.formvalue_htmlencode("guide_mode")
 
 local protocol = require "luci.http.protocol"
-local http_host = luci.http.getenv("HTTP_HOST")
+local http_host = luci.http.getenv_htmlencode("HTTP_HOST")
 local callback_url = "http://"..http_host..luci.dispatcher.build_url("admin_web", "passport","bind","callback").."/?tmp"
 --local callback_url =  "http://"..http_host.."/cgi-bin/turbo/admin_web/passport/bind/callback/?tmp";
 local callback_url_encode = protocol.urlencode(callback_url)

@@ -51,29 +51,6 @@ system_config() {
 
 	# apply timezone to kernel
 	date -k
-
-	if [ -x /sbin/syslogd ]; then
-		local args log_ip log_size log_port log_type log_file
-		config_get log_ip "$cfg" log_ip 
-		config_get log_size "$cfg" log_size 16
-		config_get log_port "$cfg" log_port 514
-		config_get log_type "$cfg" log_type circular
-		config_get log_file "$cfg" log_file "/var/log/messages"
-		args="${log_ip:+-L -R ${log_ip}:${log_port}} ${conloglevel:+-l $conloglevel}"
-		if [ "$log_type" = "file" ]; then
-			args="$args -s $log_size -O $log_file -S"
-		else
-			args="$args -C${log_size}"
-		fi
-		#service_start /sbin/syslogd $args
-		service_start sbin/syslogd -l 8 -b 10 -s 500 -O /var/log/syslog -p /tmp/data/syslog
-	fi
-	if [ -x /sbin/klogd ]; then
-		config_get klogconloglevel "$cfg" klogconloglevel
-		args="${klogconloglevel:+-c $klogconloglevel}"
-		#service_start /sbin/klogd $args
-		service_start /sbin/klogd
-	fi
 }
 
 apply_uci_config() {
@@ -88,7 +65,7 @@ config_lua_binfmt() {
 set_core_pattern() {
 
 	local rom_version=""
-		
+
 	mkdir -p /tmp/coredump
 	[ -e /proc/sys/kernel/core_pattern ] && {
 		if [ -e "/etc/.build" ]; then
@@ -122,6 +99,7 @@ start() {
 
 	###mkdir /tmp subdirs
 	mkdir -p /tmp/storage
+	mkdir -p /tmp/infogather
 	mkdir -p /tmp/coredump
 	mkdir -p /tmp/data
 	mkdir -p /tmp/cryptdata
@@ -178,6 +156,4 @@ start() {
 
 stop() {
 	echo "Do nothing." > /dev/null
-	service_stop /sbin/klogd
-	service_stop /sbin/syslogd
 }

@@ -1,0 +1,11 @@
+/var/log/syslog {
+        size 300k
+        nocompress
+        copytruncate
+        rotate 4
+        missingok
+        postrotate
+ 		/etc/init.d/rsyslog reload
+		/etc/hotplug.d/block/action.d/varlog-sync2disk      restart
+        endscript
+}

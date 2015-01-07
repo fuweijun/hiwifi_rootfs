@@ -2,61 +2,128 @@
 
 START=42
 STOP=58
+SQOS_UCI_CONF=/etc/config/sqos
 
-start() {
+deploy_config()
+{
+	local state=""
+
+	touch $SQOS_UCI_CONF
+
+	lua -e 'local qu = require("openapi.network.sqosutils"); qu.deploy_device_config_list()'
+
+	lua -e 'local qu = require("openapi.network.sqosutils"); qu.deploy_sqos_config()'
+
+	return 0
+}
+
+concide_legacy()
+{
+	#Concide wtih legacy user data
+	[ -e "/etc/app/device_qos" ] && {
+		echo "" >> /etc/app/device_qos
+		while read line 
+		do
+			if [ -z "$line" ]; then
+				break
+			fi
+			
+			mac=$(echo $line | awk '{print $1}' 2> /dev/null)
+			down=$(echo $line | awk '{print $2}' 2> /dev/null)
+			up=$(echo $line | awk '{print $3}' 2> /dev/null)
+			name=$(echo $line | awk '{print $4}' 2> /dev/null)
+	
+			#Stripe out : character
+			striped_mac=$(echo $mac | awk -F ":" '{print $1$2$3$4$5$6}' 2>/dev/null)
+		
+			#To lower case
+			striped_mac=$(echo $striped_mac | awk '{print(tolower($0))}')
+		
+			uci set sqos."$striped_mac"="device"
+			uci set sqos."$striped_mac".up="$up"
+			uci set sqos."$striped_mac".down="$down"
+			uci set sqos."$striped_mac".downg="-1"
+			uci set sqos."$striped_mac".upg="-1"
+			uci set sqos."$striped_mac".mac="$mac"
+			uci set sqos."$striped_mac".name="$name"
+
+			uci commit sqos
+
+		done < /etc/app/device_qos 
+
+		rm -f /etc/app/device_qos
+	}
+
+	[ -e "/etc/config/smartqos" ] && {
+
+		touch /etc/config/sqos
+		uci set sqos.sqos="conf"
+
+		down=$(uci get smartqos.@smartqos[0].down 2>/dev/null)
+		down=$((down / 8))
+		echo $down >/proc/sys/net/smartqos/download_bw
+		uci set sqos.sqos.down=$down
+
+		up=$(uci get smartqos.@smartqos[0].up 2>/dev/null)
+		up=$((up / 8))
+		echo $up >/proc/sys/net/smartqos/upload_bw
+
+		uci set sqos.sqos.up=$up
+		uci commit sqos
+
+		rm -f /etc/config/smartqos
+	}
+
+
+	}
+
+start() 
+{
+	local rv=""
+	local mac=""
+	local up=""
+	local down=""
+	local name=""
+	local striped_mac=""
+
 	[ "$(cat /etc/nginx/mode 2>/dev/null)" == "normal" ] && {
-		return
+		return 1
 	}
 
 	insmod hwf_smartqos 2> /dev/null
-	if [ -e /etc/app/device_qos ]; then
-		cp /etc/app/device_qos /tmp/device_qos
-		cp /etc/app/device_qos_guaranty /tmp/device_qos_guaranty
-		echo >> /tmp/device_qos
-		echo >> /tmp/device_qos_guaranty
-		while read mac down up user; do 
-			downg=$(awk -v hw=$mac '{if(hw == $1) print $2}' /tmp/device_qos_guaranty)
-			upg=$(awk -v hw=$mac '{if(hw == $1) print $3}' /tmp/device_qos_guaranty)
-			if [ -z "$downg" -o "$downg" ==  "0" ];then
-				downg=-1
+	rv=$?
+	#Failed
+	[ $rv -ne 0 ] && {                        
+			#Return except file already exist error.
+			if [ $rv -ne 17 ];then                                                   
+					return 2
 			fi
+	}
 
-			if [ -z "$upg" -o "$upg" == "0" ];then            
-				upg=-1                                 
-			fi           
-			
-			echo "$mac $down $up $downg $upg" > /proc/net/smartqos/config
-		done < /tmp/device_qos
-		rm -f /tmp/device_qos
-		rm -f /tmp/device_qos_guaranty
-	fi
+	touch /etc/config/sqos
 
-	. /lib/functions/hwf_sqos_tc_actions.sh
-	hwf_sqos_setup_tc_qdisc
+	concide_legacy		
 
-	enabled=$(uci get smartqos.@smartqos[0].enabled 2>/dev/null)
-	[ "${enabled:-0}" -eq 0 ] && {
-		disable_smartqos
-		return 0
-	} 
+	deploy_config	
 
-	down=$(uci get smartqos.@smartqos[0].down 2>/dev/null)
-	down=$((down / 8))
-	echo $down >/proc/sys/net/smartqos/download_bw
+	. /lib/functions/libsqos.sh
+	sqos_setup_tc_qdisc
 
-	up=$(uci get smartqos.@smartqos[0].up 2>/dev/null)
-	up=$((up / 8))
-	echo $up >/proc/sys/net/smartqos/upload_bw
+	return 0
 }
 
 disable_smartqos() {
 	echo 0 >/proc/sys/net/smartqos/download_bw
 	echo 0 >/proc/sys/net/smartqos/upload_bw
+
+	return 0
 }
 
 stop() {
-	. /lib/functions/hwf_sqos_tc_actions.sh
-	hwf_sqos_clean_tc_qdisc
+	. /lib/functions/libsqos.sh
+	sqos_clean_tc_qdisc
 
 	rmmod hwf_smartqos	
+
+	return 0
 }

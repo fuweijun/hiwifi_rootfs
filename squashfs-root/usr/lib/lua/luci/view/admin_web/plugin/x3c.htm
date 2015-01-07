@@ -36,19 +36,27 @@ local ver  = require "luci.version"
 		height: 30px;
 		line-height: 30px;
 	}
+	.error-box {
+        color: #d84613;
+        font-size: 14px;
+    }
 </style>
 <body>
 <div class="title">
-	<h2>本地插件<i>更多扩展功能</i></h2>
+    <h2>高级设置<i>设置路由器安全 , 及其他高级设置</i></h2>
 </div>
 <div class="menu">
-	<a href="<%=luci.dispatcher.build_url("admin_web", "plugin","mentohust")%>">锐捷认证</a>
-	<a href="<%=luci.dispatcher.build_url("admin_web", "plugin","x3c")%>" class="selected" />华3认证</a>
+    <% include("admin_web/menu/adv_menu") %>
 </div>
 
-<div class="box setup_box" style="height: 560px;">
+<div class="box setup_box">
 	<form id="form1"> 
 		<ul class="ullist" style="position:relative">
+		    <li class="error-box">
+                <div class="info">
+                    <p><%:温馨提示：本功能由第三方开发，仅支持华3的部分版本%></p>
+                </div>
+            </li>
 			<fieldset class="cbi-section" id="cbi-x3c8021x-base_set">
 				<legend>基本参数</legend>
 				<li>

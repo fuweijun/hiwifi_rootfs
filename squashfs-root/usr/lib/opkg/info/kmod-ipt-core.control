@@ -9,7 +9,7 @@ Essential: no
 Priority: optional
 Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
 Architecture: ralink
-Installed-Size: 26521
+Installed-Size: 26560
 Description:  Netfilter core kernel modules
  Includes:
  - comment

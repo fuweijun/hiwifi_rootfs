@@ -20,4 +20,3 @@ proto_send_update "$PPP_IPPARAM"
 		[ -x "$SCRIPT" ] && "$SCRIPT" "$@"
 	done
 }
-kill -USR1 $(pidof pppd-manage.sh)

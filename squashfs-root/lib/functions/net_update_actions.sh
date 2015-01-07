@@ -71,12 +71,29 @@ net_inet_stat_file_update()
 	} 33>/var/lock/net_update_actions.lock;
 }
 
+# led on/off api for app
+net_internet_led_set()
+{
+	local netstate="$(cat /tmp/state/inet_stat 2> /dev/null)"
+	local action="$1"
+
+	if [[ "off" = "$action" ]]; then
+		setled off green internet
+	else
+		# only when net state is up, on internet led
+		if [[ "inet_up" = "$netstate" ]]; then
+			setled on green internet
+		fi
+	fi
+}
+
 net_internet_led_update()
 {
 	local netstate=$1
 
 	if [[ "inet_up" = "$netstate" ]];then
-		[[ ! -e /etc/config/led_disable ]] &&  setled on green internet
+		local led_state=$(uci get hiwifi.led.state)
+		[[ "$led_state" -eq "1" ]] &&  setled on green internet
 	else
 		setled off green internet
 	fi

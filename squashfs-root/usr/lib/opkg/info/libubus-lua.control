@@ -9,5 +9,5 @@ Essential: no
 Priority: optional
 Maintainer: Felix Fietkau <nbd@openwrt.org>
 Architecture: ralink
-Installed-Size: 5557
+Installed-Size: 5573
 Description:  Lua binding for the OpenWrt RPC client

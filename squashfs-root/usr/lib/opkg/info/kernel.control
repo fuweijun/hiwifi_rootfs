@@ -1,5 +1,5 @@
 Package: kernel
-Version: 3.3.8-1-df6733bf463f191ba6db1c3afea602fb
+Version: 3.3.8-1-bca385976ab0fa129343c0fb9f7c07d2
 Depends: libc
 Provides: 
 Source: package/kernel/linux

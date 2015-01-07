@@ -5,7 +5,7 @@
 	Copyright	2012
 ]]--
 local ver  = require "luci.version"
-local urlReq = luci.util.fliter_unsafe(luci.http.formvalue("url"))
+local urlReq = luci.http.urlencode(luci.http.formvalue("url"))
 if urlReq == nil then
 	urlReq = ""
 end
@@ -29,10 +29,10 @@ format_is_mobile();
 var newurl = "";
 if(needJumpMobile()){
     // Use new detect for mobile
-    newurl = "<%=luci.dispatcher.build_url("admin_mobile", "net_detect_1")%>";
+    newurl = "<%=luci.dispatcher.build_url("admin_mobile", "net_detect_2")%>";
 } else {
     // Use new detect for pc
-    newurl = "<%=luci.dispatcher.build_url("admin_web", "system", "net_detect_1")%>";
+    newurl = "<%=luci.dispatcher.build_url("admin_web", "system", "net_detect_2")%>";
 }
 if(from_url != ''){
     newurl = newurl + '?url='+from_url;

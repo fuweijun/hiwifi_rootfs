@@ -11,11 +11,11 @@ HC5641)
 	# disable console for NXP
 	sed -i '/ttyS1/d' /etc/inittab
 	# disable hwf_health_chk
-	sed -i '/hwf_health_chk/d' /etc/inittab
+	sed -i '/hidaemon/d' /etc/inittab
 	;;
 HB5811)
 	# disable hwf_health_chk
-	sed -i '/hwf_health_chk/d' /etc/inittab
+	sed -i '/hidaemon/d' /etc/inittab
 	;;
 esac
 

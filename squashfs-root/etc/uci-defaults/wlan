@@ -7,21 +7,27 @@
 board=$(tw_board_name)
 
 case "$board" in
-HB5981s)
+"HB5981s")
 	sed -i 's/^HT_TxStream=2/HT_TxStream=1/g' /etc/wlan/RT2860.dat
 	sed -i 's/^HT_RxStream=2/HT_RxStream=1/g' /etc/wlan/RT2860.dat
 	;;
-HC5861)
+"HC5861" | "HC5762")
 	sed -i 's/^HT_TxStream=1/HT_TxStream=2/g' /etc/wlan/iNIC_ap.dat
 	sed -i 's/^HT_RxStream=1/HT_RxStream=2/g' /etc/wlan/iNIC_ap.dat
 	sed -i 's/^HT_STBC=0/HT_STBC=1/g' /etc/wlan/iNIC_ap.dat
 	sed -i 's/^VHT_STBC=0/VHT_STBC=1/g' /etc/wlan/iNIC_ap.dat
 	;;
-HB5881|HB5811)
+"HB5881" | "HB5811" | "ZC-9526")
 	sed -i 's/"_5G"//g' /lib/wifi/ralink.sh
 	sed -i 's/^HT_BW=1/HT_BW=0/g' /etc/wlan/RT2860.dat
+	sed -i 's/^MaxStaNum=32/MaxStaNum=64/g' /etc/wlan/RT2860.dat
+	sed -i 's/^MaxStaNum=32/MaxStaNum=64/g' /etc/wlan/iNIC_ap.dat
 	uci set wireless.radio0.channel=6
 	uci commit wireless
+	;;
+"ZC-9527")
+	sed -i 's/^MaxStaNum=32/MaxStaNum=64/g' /etc/wlan/RT2860.dat
+	sed -i 's/^MaxStaNum=32/MaxStaNum=64/g' /etc/wlan/iNIC_ap.dat
 	;;
 esac
 

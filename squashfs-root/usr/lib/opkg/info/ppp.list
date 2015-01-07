@@ -1,8 +1,10 @@
 /lib/upgrade/keep.d/ppp
 /usr/sbin/pppd
+/usr/sbin/show-pppoe-log.sh
 /etc/ppp/filter
 /lib/netifd/ppp-up
 /usr/sbin/pppd-manage.sh
+/etc/ppp/ip-up.d/00-notice-pppd-manage.sh
 /etc/ppp/options
 /etc/logrotate.d/ppp
 /etc/ppp/chap-secrets

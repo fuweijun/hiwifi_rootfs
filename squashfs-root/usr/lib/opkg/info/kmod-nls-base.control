@@ -9,5 +9,5 @@ Essential: no
 Priority: optional
 Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
 Architecture: ralink
-Installed-Size: 3196
+Installed-Size: 3203
 Description:  Kernel module for NLS (Native Language Support)

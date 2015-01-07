@@ -9,5 +9,5 @@ Essential: no
 Priority: optional
 Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
 Architecture: ralink
-Installed-Size: 6012
+Installed-Size: 6005
 Description:  manages flock locks from within shell scripts or the command line

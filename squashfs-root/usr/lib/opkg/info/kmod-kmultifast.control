@@ -1,13 +1,13 @@
 Package: kmod-kmultifast
-Version: 3.3.8+1.0.0-20140716
+Version: 3.3.8+1.0.0-20141021
 Depends: 
 Provides: 
-Source: /home/build/hiwifi/branch/release0.9005/HC5661/package/kmultifast
+Source: /ROOT/diskb/hiwifi/branch/release0.9007/HC5661/package/kmultifast
 Section: kernel
 Status: unknown ok not-installed
 Essential: no
 Priority: optional
 Maintainer: Guang Liu<guang.liu@hiwifi.tw>
 Architecture: ralink
-Installed-Size: 4910
+Installed-Size: 6284
 Description:  This package contains kernel multifast.

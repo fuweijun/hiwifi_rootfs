@@ -2,12 +2,12 @@ Package: bc_channel
 Version: 0.21-20140818
 Depends: libc, libopenssl, libtw, libauth, libhwf-log, libcurl, libqos
 Provides: 
-Source: /home/build/hiwifi/branch/release0.9005/HC5661/package/bc_channel
+Source: /ROOT/diskb/hiwifi/branch/release0.9007/HC5661/package/bc_channel
 Section: opt
 Status: unknown ok not-installed
 Essential: no
 Priority: optional
 Maintainer: cloud <cloud@hiwifi.com>
 Architecture: ralink
-Installed-Size: 13076
+Installed-Size: 13113
 Description:  bc_channel

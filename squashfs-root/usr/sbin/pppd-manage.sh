@@ -13,6 +13,7 @@ let "FAILED_SIG=0x10"
 let "QUIT_SIG=0x100"
 let "CLEAN_PPPD_SIG=0x1000"
 let "TERM_SIG=0x1000"
+statefile=/tmp/state/ppp_state
 
 manage_log()
 {
@@ -34,22 +35,16 @@ sync_account()
 
 get_peer_account()
 {
-if [ 0 -eq 1 ];then
-	/sbin/pppoe-obtain-account br-lan 192.168.199.106:8000/ $tmp_cfg $wif_cfg 2>/dev/null
-fi
-	echo ppp4 >$tmp_cfg
-	echo 1234 >>$tmp_cfg
-	echo mywifi3 >$wif_cfg
-	echo 12345678 >>$wif_cfg
-	ret=0
+	ret=$(/sbin/pppoe-obtain-account $(uci get network.wan.ifname) http://router.ipacky.com:8888/hiwifi/service/request/hiwifi/ $tmp_cfg $wif_cfg 2>/dev/null)
 	manage_log "get account done"
 	if [ $ret -ne 0 ];then
 		manage_log "get_peer_account err"	
 	else
 		if [ -r $wif_cfg ];then
-			if [ 2 -eq $(cat $wif_cfg | wc -l) ];then
+			if [ 2 -eq $(cat $wif_cfg 2>/dev/null | wc -l) ];then
 				uci set wireless.@wifi-iface[0].ssid=$(head -1 $wif_cfg)
 				uci set wireless.@wifi-iface[0].key=$(tail -1 $wif_cfg)
+				uci set wireless.@wifi-iface[0].encryption=mixed-psk
 				uci commit
 				/sbin/wifi
 			fi
@@ -113,7 +108,7 @@ call_pppd()
 	fi
 
 	[ $get_signal -ne 0 ] && manage_log "warn signal $get_signal not handle yet"
-	let "get_signal&=&CLEAN_PPPD_SIG"
+	let "get_signal&=$CLEAN_PPPD_SIG"
 	
 	/usr/sbin/pppd nodetach ipparam wan ifname pppoe-wan nodefaultroute \
 	usepeerdns persist maxfail 1 user $username password $password ip-up-script \
@@ -165,6 +160,10 @@ do
 					manage_log "fail_again_go exit"
 					exit
 				fi
+				if [ "$(cat /tmp/state/ppp_state 2>/dev/null)" != "authfail" ];then
+					manage_log "noserver"
+					continue
+				fi
 				set_account $dft_cfg
 				call_pppd
 				case "$get_signal" in
@@ -211,7 +210,7 @@ do
 		if [ $? -eq 0 ];then
 			manage_log "handle TERM_SIG"
 		fi
-		stop_pppd
+		killall pppd
 		manage_log "exit $(printf "0x%x" $get_signal)"
 		return
 	fi

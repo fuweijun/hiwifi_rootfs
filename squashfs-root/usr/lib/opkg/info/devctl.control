@@ -9,5 +9,5 @@ Essential: no
 Priority: optional
 Maintainer: Abu Cheng <abu.zheng@hiwifi.tw>
 Architecture: ralink
-Installed-Size: 1752
+Installed-Size: 1737
 Description:  device control tool.

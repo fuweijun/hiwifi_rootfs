@@ -2,12 +2,12 @@ Package: libauth
 Version: 66-20140428
 Depends: libc, libtw, libbdinfo, libcurl, libopenssl
 Provides: 
-Source: /home/build/hiwifi/branch/release0.9005/HC5661/package/libauth
+Source: /ROOT/diskb/hiwifi/branch/release0.9007/HC5661/package/libauth
 Section: libs
 Status: unknown ok not-installed
 Essential: no
 Priority: optional
 Maintainer: Hong Shen <sh@ikwcn.com>
 Architecture: ralink
-Installed-Size: 5554
+Installed-Size: 5555
 Description:  Library for Authentication

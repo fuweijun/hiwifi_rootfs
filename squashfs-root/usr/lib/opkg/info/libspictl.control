@@ -9,5 +9,5 @@ Essential: no
 Priority: optional
 Maintainer: Duke Wu <duke.wu@ikwcn.com>
 Architecture: all
-Installed-Size: 1861
+Installed-Size: 1860
 Description:  Provide supporting for writing or reading information in SPI flash.

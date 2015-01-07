@@ -2,14 +2,14 @@ Package: libavahi
 Version: 0.6.31-5
 Depends: libc, libdaemon, libpthread, libgdbm
 Provides: 
-Source: /home/build/hiwifi/branch/release0.9005/HC5661/feeds/avahi
+Source: /ROOT/diskb/hiwifi/branch/release0.9007/HC5661/feeds/avahi
 Section: libs
 Status: unknown ok not-installed
 Essential: no
 Priority: optional
 Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
 Architecture: ralink
-Installed-Size: 66640
+Installed-Size: 66434
 Description:  Avahi is an mDNS/DNS-SD (aka RendezVous/Bonjour/ZeroConf) 
  implementation (library). It facilitates 
  service discovery on a local network -- this means that 

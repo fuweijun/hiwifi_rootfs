@@ -1,5 +1,5 @@
 Package: base-files
-Version: 1600.20140821-300-0.9005.5699s
+Version: 1600.20141021-0.9007.1.7117s
 Depends: libc, netifd
 Provides: 
 Source: package/base-files
@@ -9,5 +9,5 @@ Essential: no
 Priority: optional
 Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
 Architecture: ralink
-Installed-Size: 60901
+Installed-Size: 60080
 Description:  This package contains a base filesystem and system scripts for OpenWrt.

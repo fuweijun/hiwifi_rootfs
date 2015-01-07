@@ -37,20 +37,24 @@
 <link rel="apple-touch-icon-precomposed" sizes="114x114" href="<%=resource%>/mobile/image/apple-touch-icon-114n.png" /> 
 <link rel="apple-touch-icon-precomposed" sizes="144x144" href="<%=resource%>/mobile/image/apple-touch-icon-144n.png" />
 
-<script type="text/javascript">//<![CDATA[
+<script type="text/javascript">
+//<![CDATA[
 	var URL_ROOT_PATH = "<%=disp.build_url("")%>"
 	var i18_connection = "<%:连接中...%>";
 	var i18_second = "<%:秒%>";
 	var i18_hour = "<%:小时%>";
 	var i18_minute = "<%:分钟%>";
 	var i18_day = "<%:天%>";
-  //]]></script>
+//]]>
+</script>
 
 <link rel="stylesheet" href="<%=resource%>/mobile/css/jquery.mobile-1.1.0.css?v=<%=ver.svnRevNum%>" />
 <link rel="stylesheet" href="<%=resource%>/mobile/css/mobile.css?v=<%=ver.svnRevNum%>" />
 <link rel="stylesheet" href="<%=resource%>/mobile/css/sd.css?v=<%=ver.svnRevNum%>" />
 <script src="<%=resource%>/mobile/js/jquery.mobile-1.1.0.js?v=<%=ver.svnRevNum%>"></script>
-<script language="javascript" type="text/javascript">
+<script src="<%=resource%>/storage.js?v=<%=ver.svnRevNum%>"></script>
+<script src="<%=resource%>/translator.js?v=<%=ver.svnRevNum%>"></script>
+<script type="text/javascript">
 format_is_mobile();
 if(!needJumpMobile()){
 	window.location.href="<%=luci.dispatcher.build_url('admin_web')%>";

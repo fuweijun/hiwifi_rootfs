@@ -1,0 +1,13 @@
+Package: kmod-proto-bridge
+Version: 3.3.8-20140918
+Depends: 
+Provides: 
+Source: /ROOT/diskb/hiwifi/branch/release0.9007/HC5661/package/proto-bridge
+Section: kernel
+Status: unknown ok not-installed
+Essential: no
+Priority: optional
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Architecture: ralink
+Installed-Size: 3283
+Description:  Protocol-based bridging modules

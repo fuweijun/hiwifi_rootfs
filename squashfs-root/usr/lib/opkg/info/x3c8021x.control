@@ -9,6 +9,6 @@ Essential: no
 Priority: optional
 Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
 Architecture: ralink
-Installed-Size: 8815
+Installed-Size: 8808
 Description:  802.1X client compatable with H3C iNode 802.1X client.
  Support H3C/iNode's private authentication protocol v2.4-v5.1

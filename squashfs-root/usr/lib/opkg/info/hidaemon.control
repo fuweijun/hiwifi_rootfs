@@ -1,13 +1,13 @@
 Package: hidaemon
-Version: 0.0.1-20140806
+Version: 0.0.1-20141029
 Depends: libc
 Provides: 
-Source: /home/build/hiwifi/branch/release0.9005/HC5661/package/hidaemon
+Source: /ROOT/diskb/hiwifi/branch/release0.9007/HC5661/package/hidaemon
 Section: net
 Status: unknown ok not-installed
 Essential: no
 Priority: optional
 Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
 Architecture: ralink
-Installed-Size: 7562
+Installed-Size: 8046
 Description:  hidaemon is a system state checking, accounting and fixing tool for hiwifi router.

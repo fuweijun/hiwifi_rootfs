@@ -47,9 +47,9 @@ ppp_generic_setup() {
 	[ -n "$connect" ] || json_get_var connect connect
 	[ -n "$disconnect" ] || json_get_var disconnect disconnect
 
-	special_dial=$(uci get network.wan.special_dial 2>/dev/null)
+	special_dial=$(uci get network.$config.special_dial 2>/dev/null)
 	if [ ${special_dial:-0} -ne 0 ]; then
-		special_dial_num=$(uci get network.wan.special_dial_num 2>/dev/null)
+		local special_dial_num=$(uci get network.$config.special_dial_num 2>/dev/null)
 		local new_username=$(special_dial $username $password ${special_dial_num:-0} 0)
 		local new_password=$(special_dial $username $password ${special_dial_num:-0} 1)
 		username=$new_username
@@ -90,12 +90,12 @@ ppp_generic_teardown() {
 				proto_block_restart "$interface"
 			fi
 
-			special_dial=$(uci get network.wan.special_dial 2>/dev/null)
+			special_dial=$(uci get network.$interface.special_dial 2>/dev/null)
 			if [ ${special_dial:-0} -eq 1 ]; then
-				special_dial_num=$(uci get network.wan.special_dial_num 2>/dev/null)
-				special_dial_max=$(special_dial)
-				uci set network.wan.special_dial_num=`expr \( ${special_dial_num:-0} + 1 \) % $special_dial_max`
-				uci commit network.wan.special_dial_num
+				local special_dial_num=$(uci get network.$interface.special_dial_num 2>/dev/null)
+				local special_dial_max=$(special_dial)
+				uci set network.$interface.special_dial_num=$(((special_dial_num+1)%special_dial_max))
+				uci commit network.$interface.special_dial_num
 			fi
 
 			sleep 4
@@ -148,7 +148,7 @@ proto_pppoe_setup() {
 	json_get_var ac ac
 	json_get_var service service
 
-	pppoe-term $(uci get network.wan.ifname) 60 2>/dev/null
+	pppoe-term $iface 60 2>/dev/null
 	sleep 1
 
 	local i=0

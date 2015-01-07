@@ -126,7 +126,7 @@ download_speed_test()
 			job_num=$(ps www | grep [c]url |grep "$uri" | wc -l)
 			while [ $job_num -lt $parallel_num ];
 			do
-				curl  -m $duration -o /dev/null $uri  &> /dev/null &
+				curl -L -m $duration -o /dev/null $uri  &> /dev/null &
 				job_num=$((job_num + 1))
 			done
 		done

@@ -1,0 +1,391 @@
+<%
+--[[
+    Info    网络诊断页2
+    Author  ChaogangLiu  <chaogang.liu@hiwifi.tw>
+    Copyright 2014
+]]--
+
+local ver  = require "luci.version"
+local urlReq = luci.http.formvalue_htmlencode("url")
+if urlReq==nil then
+    urlReq = ""
+end
+local iscont = luci.util.is_internet_connect()
+local wifi_status,wifi_device,wifi_ifname,wifi_ssid,wifi_encryption,wifi_channel,wifi_mode,wifi_ssidprefix = luci.util.get_wifi_device_status()
+local autowantypeResp = luci.util.get_auto_wan_type_code()
+local need_check_channel = true
+if autowantypeResp ~= nil and autowantypeResp == 4 then
+    need_check_channel = false
+end
+%>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title><%:网络诊断%></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel='stylesheet' href='<%=resource%>/web/net_detect_2/css/net.css?v=<%=ver.svnRevNum%>' type='text/css' media='all' />
+    <script type="text/javascript" src="<%=resource%>/web/js/jquery-1.8.1.min.js?v=<%=ver.svnRevNum%>"></script>
+    <script type="text/javascript" src="<%=resource%>/net_detect_2/js/net_detect_2.js?v=<%=ver.svnRevNum%>"></script>
+</head>
+<body>
+<div class="bd">
+    <div class="header">
+        <div class="logo"></div><a href="<%=luci.dispatcher.build_url('admin_web')%>" class="back">路由器后台</a>
+    </div>
+    <div id="switch_btn_span" class="crumb-bar" >诊断开关<a class="switch-btn J_switch" href="#"></a></div>
+    <div class="main">
+        <div class="top-bar"><div id="mydevpic" class="pc"></div></div>
+        <table class="top-bar-text">
+            <col width="55"/>
+            <col width="125"/>
+            <col width="55"/>
+            <col width="140"/>
+            <col width="65"/>
+            <col width="140"/>
+            <col width="55"/>
+            <tr>
+                <td id="mydevname">我的设备</td>
+                <td></td>
+                <td><%:路由器%></td>
+                <td></td>
+                <td><%:宽带运营商%></td>
+                <td></td>
+                <td><%:互联网%></td>
+            </tr>
+        </table>
+        <div class="test-box">
+            <p id="check-box" class="title"><span class="loading">正在诊断，请稍候...</span></p>
+            <p class="btn-bar" style="display: none"><a href="<%=luci.dispatcher.build_url("admin_web","system","net_detect_2")%>?url=<%=urlReq%>" class="test-btn">重新诊断</a> </p>
+        </div>
+        <div class="state-box" style="display:none">
+            <div class="title">发现以下问题：</div>
+            <dl id="dev_router_area" style="display:none">
+                <dt>链路 ①（我的电脑 - 路由器）：</dt>
+                <div id="dev_router">
+                </div>
+            </dl>
+            <dl id="router_icp_area" style="display:none">
+                <dt>链路 ②（路由器 - 宽带运营商）：</dt>
+                <div id="router_icp">
+                </div>
+            </dl>
+            <dl id="icp_www_area" style="display:none">
+                <dt>链路 ③（宽带运营商 - 互联网）：</dt>
+                <div id="icp_www">
+                </div>
+            </dl>
+        </div>
+    </div>
+    <div id="url_box_url" class="link-bar">
+    </div>
+    <div class="footer">
+        Copyright © 2012-2014 HiWiFi.com
+    </div>
+    <img id="test_host_img" style="display:none"/>
+</div>
+<div class="dialog-tip J_dialog" style="display: none;">
+    <div class="hd"><span class="close J_closeDialog"></span><span>网络诊断页开关</span></div>
+    <div class="bd">
+        <div class="tip-pic"></div>
+        <div class="tip-box">
+            <p>1.关闭后,将不会弹出诊断页。</p>
+            （7日后自动恢复启动状态）
+            <p>2.手动开启诊断页方法：</p>
+            （路由后台/网络诊断/开启）
+        </div>
+    </div>
+</div>
+<div class="mask" style="display: none"></div>
+<script type="text/javascript">
+    $('.J_switch').click(function(){
+        var $this = $(this),
+                $dialog =$('.J_dialog'),
+                w = $(window).width(),
+                h = $(window).height(),
+                left = w/2-$dialog.width()/ 2,
+                top = h/2 - $dialog.height()/2;
+        if($this.hasClass('on')){
+            $this.addClass('off').removeClass('on')
+            $dialog.css({'left':left+'px','top':top +'px'}).show();
+            $('.mask').css({'width':w+'px','height':h +'px'}).show();
+        }else{
+            $this.addClass('on').removeClass('off');
+
+        }
+    })
+    $('.J_closeDialog').click(function(){
+        $('.J_dialog').hide();
+        $('.mask').hide();
+    })
+</script>
+</body>
+<script type="text/javascript">
+var inet_chk_state = "";
+
+var debug = "<%=debugReq%>";
+var set_net_url = "<%=luci.dispatcher.build_url("admin_web")%>?act=set_network";
+var net_setup_url = "<a href="+set_net_url+" target='_blank'>设置外网</a>";
+
+var set_wifi_channel_url = "<%=luci.dispatcher.build_url("admin_web")%>?act=wifi_channel";
+var wifi_channel_url = "<a href='"+set_wifi_channel_url+"' target='_blank'>设置穿墙模式</a>";
+var wifi_channel_line_url = "<a href='"+set_wifi_channel_url+"' target='_blank'>WiFi信道</a>";
+var set_wifi_txpwr_url = "<a href='"+set_wifi_channel_url+"' target='_blank'>信号强度</a>";
+
+var dev_list_url = "<%=luci.dispatcher.build_url("admin_web")%>?act=devices";
+var dev_list = "<a href='"+dev_list_url+"' target='_blank'>设备管理</a>";
+
+var is_eth_link_s = new Array(); 
+is_eth_link_s[1] = "已连接";
+is_eth_link_s[0] = "<span class='err'>未连接</span>";
+
+var uciwantype_s = new Array(); 
+uciwantype_s['pppoe'] = "PPPoE";
+uciwantype_s['dhcp'] = "DHCP";
+uciwantype_s['static'] = "静态IP";
+uciwantype_s['wisp'] = "无线中继";
+
+var autowantype_s = new Array(); 
+autowantype_s[1] = "PPPoE";
+autowantype_s[2] = "DHCP";
+autowantype_s[3] = "静态IP";
+autowantype_s[4] = "无线中继";
+autowantype_s[99] = "<span class='err'>未插网线</span>";
+autowantype_s[100] = "未插网线 (无线中继 无需连接)";
+
+var unlinkerr_s = new Array();
+unlinkerr_s['pppoe'] = "请检查你的网线是否插好。";
+unlinkerr_s['dhcp'] = "你的网线连接存在问题，请检查网线是否插好";
+unlinkerr_s['static'] = "请检查你的网线是否插好。";
+unlinkerr_s['wisp'] = "请检查无线中继的网络是否存在，密码是否正确。";
+
+var error_list = new Array;
+error_list['0'] = "正常";
+error_list['-1'] = "<%:正在拨号，请稍侯%>";
+error_list['646'] = "你的宽带帐号无法使用（错误代码：646）";
+error_list['647'] = "你的宽带帐号无法使用（错误代码：647）";
+error_list['648'] = "你的宽带帐号无法使用（错误代码：648）";
+error_list['649'] = "你的宽带帐号无法使用（错误代码：649）";
+error_list['678'] = "宽带运营商的服务器未响应（错误代码：678）";
+error_list['691'] = "你的宽带帐号无法使用（错误代码：691）";
+error_list['709'] = "更改域上的密码时发生错误（错误代码：709）";
+
+var url_s = new Array();
+url_s['baidu'] = "baidu.com";
+url_s['hiwifi_app'] = "app.hiwifi.com";
+url_s['qq'] = "qq.com";
+
+var check_website_url_s = new Array();
+check_website_url_s[0] = 'www.qq.com';
+check_website_url_s[1] = 'www.baidu.com';
+
+var txpwr_s = new Array();
+txpwr_s['max']='强';
+txpwr_s['mid']='中';
+txpwr_s['min']='弱';
+txpwr_s['140']='穿墙模式';
+
+var state_result_s = new Array();
+
+var check_website_url_result_s = new Array();
+var hiwifi_dev_result_s = new Array();
+var back_url;
+var mac_local;
+var hiwifi_ipv4;
+//是否需要检测信道
+//var need_check_channel = '<%=need_check_channel%>';
+var need_check_channel = false;
+var wifi_status = '<%=wifi_status%>';
+var wifi_channel = '<%=wifi_channel%>';
+var limit_down_speed = 500;
+var remote_addr;
+var dev_hiwifi_result_s = new Array();
+var wifi_type = null;
+
+var API_URL = new Array();
+API_URL['api.wifi.get_txpwr'] = "<%=luci.dispatcher.build_url("api", "wifi","get_txpwr")%>"
+API_URL['api.wifi.get_channel'] = "<%=luci.dispatcher.build_url("api", "wifi","get_channel")%>"
+API_URL['api.wifi.get_channel_rank'] = "<%=luci.dispatcher.build_url("api", "wifi","get_channel_rank")%>"
+API_URL['api.network.device_signal'] = "<%=luci.dispatcher.build_url("api", "network","device_signal")%>"
+API_URL['api.network.net_detect_ping_remote'] = "<%=luci.dispatcher.build_url("api", "network","net_detect_ping_remote")%>"
+API_URL['api.network.get_inet_chk_state'] = "<%=luci.dispatcher.build_url("api", "network","get_inet_chk_state")%>"
+API_URL['api.network.inet_chk_switch'] = "<%=luci.dispatcher.build_url("api", "network","inet_chk_switch")%>"
+API_URL['api.network.net_detect_1'] = "<%=luci.dispatcher.build_url("api", "network","net_detect_1")%>"
+API_URL['api.network.get_pppoe_status'] = "<%=luci.dispatcher.build_url("api", "network","get_pppoe_status")%>"
+API_URL['api.net_detect.net_detect_host'] = "<%=luci.dispatcher.build_url("api", "net_detect","net_detect_host")%>"
+
+function find_api_url(a, b, c){
+    return API_URL[a+"."+b+"."+c]
+}
+
+// 测试结果提示
+var find_test_result_msg = function(key, params){
+    if(key == "channel"){
+        return '信道使用情况检测不正常，请重试'
+    }else if(key == "channel_crowded"){
+        return '路由器使用信道拥挤！建议调整为'+ params.recommend_channel;
+    }else if(key == "txpwr_weak"){
+        return '你的信号强度设置为'+txpwr_s[params.txpwr];
+    }else if(key == "txpwr_error"){
+        return '检测信号强度错误，请重试'
+    }else if(key == "txpwr_faild"){
+        return '信号强度有误，请重试'
+    }else if(key == "wifi_closed"){
+        return '无线网络被关闭'
+    }else if(key == "device_signal_weak"){
+        return '终端的无线信号太弱'
+    }else if(key == "http_fail"){
+        return '连接超时';
+    }else if(key == "net_detect_ping_remote_loss"){
+        return "ping丢包"
+    }else if(key == "device_dns"){
+        return '你的终端设备使用了自定义DNS，可能会影响上网效果';
+    }else if(key == "net_detect_dns"){
+        return "路由器使用了自定义DNS，可能会影响上网效果";
+    }else if(key == "uciwantype_not_eq_autowantype"){
+        return "可能宽带接入商设备故障，无法提供PPPoE拨号服务。或者上网类型设置错误! " + net_setup_url;
+    }else if(key == "devices_down_speed"){
+        return "设备有大流量下载行为，速度"+params.max_down+"KB/s"+"，请查看"+dev_list
+    }else if(key == "unlink"){
+        return "路由器的网线没有插好"
+    }else if(key == "unlink_pppoe"){
+        return "路由器的网线没有插好"
+    }else if(key == "unlink_dhcp"){
+        return "路由器的网线没有插好"
+    }else if(key == "unlink_static"){
+        return "路由器的网线没有插好"
+    }else if(key == "unlink_wisp"){
+        return "路由器所中继的无线网络无法使用"
+    }else if(key == "no_con_wisp"){
+        return "路由器所中继的无线网络无法使用"
+    }else if(key == "no_con_dhcp"){
+        return "自动方式 (DHCP)无法上网"
+    }else if(key == "no_con_pppoe"){
+        return "PPPOE拨号出现异常"
+    }else if(key == "no_con_static"){
+        return "静态IP设置有问题"
+    }else if(key == "con_ok_net_fail"){
+        return "路由器网络连接正常，请检查所接入网络是否畅通。"
+    }else if(key == "net_detect_dns_miss"){
+        return '无DNS'
+    }
+}
+
+<% if iscont then %>
+var iscont = 1;
+<% else %>
+var iscont = 0;
+<% end %>
+init_mac_local();
+init_back_url();
+update_dev_type_view();
+show_inet_chk_switch();
+test_start();
+
+function test_start(){
+    check_website_140523();
+    update_hiwifi_icp_show();
+    update_dev_hiwifi_view();
+    update_hiwifi_dev_view();
+    test_dev_web();
+}
+
+function init_back_url(){
+    back_url = '<%=urlReq%>';
+    if(typeof(back_url) != "undefined"){
+        if(back_url.indexOf('://')==-1){
+            back_url = "http://"+back_url;
+        }
+        if(typeof(back_url) != "undefined" && back_url!="" && back_url != "http://"){
+            var url = back_url;
+            var url_show = url;
+            if(url_show.length > 67){
+                url_show = url_show.substr(0, 64)+"..."
+            }
+            $("#url_box_url").html("<p>您之前访问的网页是：<a target='_blank' href='"+url+"'>"+url_show+"</a></p>");
+        }
+    }
+}
+
+function init_mac_local(){
+    <%
+    local remote_addr = luci.http.getenv_htmlencode("REMOTE_ADDR") 
+    local mac = luci.sys.net.ip4mac(remote_addr) or ""
+    %>
+    remote_addr = '<%=remote_addr%>';
+    mac_local = "<%=mac%>".toUpperCase();
+}
+
+
+function show_test_result(data){
+    var group = data.group;
+    var msg = "";
+    var level = data.level;
+    var rst = data.rst;
+    var item = data.item;
+    var link = "#";
+    if(data.link){
+        link = data.link;
+    }else{
+        var qa_url = '<%=luci.dispatcher.build_url("admin_web", "system","net_detect_help_2")%>'
+        link = qa_url + '?qid='+item
+    }
+    if(data.msg){
+        msg = data.msg;
+    }
+    var show_msg = false;
+    var result_ico = '';
+    if(rst == 'ERROR'){
+        result_ico = 'x';
+        show_msg = true;
+    }else if(rst == 'SUCCESS'){
+        result_ico = '';
+    }else if(rst == 'NORMAL'){
+        show_msg = true;
+        result_ico = 'i';
+    }
+    if(show_msg){
+        $(".state-box").show();
+        var result_html = '<dd class="'+result_ico+'"><a target="_blank" class="link" href="'+link+'">解决方案</a>'+msg+'</dd>';
+        if(group == 'dev_router'){
+            $("#dev_router").append(result_html);
+            $("#dev_router_area").show();
+        }else if(group == 'router_icp'){
+            $("#router_icp").append(result_html);
+            $("#router_icp_area").show();
+        }else if(group == 'icp_www'){
+            $("#icp_www").append(result_html);
+            $("#icp_www_area").show();
+        }
+    }
+}
+
+function update_info_box_show(class_name, pass){
+    state_result_s.push(pass);
+    if(state_result_s.length < 4){
+        $("#check-box").show();
+        $(".btn-bar").hide();
+        $("#check-box").html('<span class="loading">正在诊断，请稍候...</span>');
+    }else{
+        $(".btn-bar").show();
+        $("#check-box").show();
+        var has_error = false;
+        $.each(state_result_s, function( index, value ) {
+            if(value != true){
+              has_error = true;
+            }
+        });
+        if(!has_error){
+            $("#check-box").html("诊断完成，网络连接正常");
+        }else{
+            $("#check-box").html("诊断完成");
+        }
+    }
+}
+
+$('.J_switch').click(function(){
+    inet_chk_switch()
+})
+
+</script>
+</html>

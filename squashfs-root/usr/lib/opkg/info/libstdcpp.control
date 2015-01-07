@@ -9,5 +9,5 @@ Essential: yes
 Priority: optional
 Maintainer: Felix Fietkau <nbd@openwrt.org>
 Architecture: ralink
-Installed-Size: 237298
+Installed-Size: 237173
 Description:  GNU Standard C++ Library v3

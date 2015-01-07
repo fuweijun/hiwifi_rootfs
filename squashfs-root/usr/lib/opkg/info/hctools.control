@@ -9,5 +9,5 @@ Essential: no
 Priority: optional
 Maintainer: Duke Wu <duke.wu@ikwcn.com>
 Architecture: all
-Installed-Size: 2899
+Installed-Size: 2941
 Description:  Provide supporting for board initialize and board reset.

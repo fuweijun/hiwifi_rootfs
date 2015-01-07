@@ -22,7 +22,7 @@ hotplug_net_update()
 	if [[ "linkdown" = "$ACTION" ]]; then
 		netdown_action
 	elif [[ "linkup" = "$ACTION" ]]; then
-		netup_action
+		return 0
 	else
 		return 0
 	fi

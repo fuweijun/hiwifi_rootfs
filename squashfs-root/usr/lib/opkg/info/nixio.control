@@ -2,12 +2,12 @@ Package: nixio
 Version: 0.10.0
 Depends: libc, lua
 Provides: 
-Source: /home/build/hiwifi/branch/release0.9005/HC5661/package/nixio
+Source: /ROOT/diskb/hiwifi/branch/release0.9007/HC5661/package/nixio
 Section: nixio
 Status: unknown ok not-installed
 Essential: no
 Priority: optional
 Maintainer: Jingyuan Wang <jingyuan.wang@ikw.com>
 Architecture: ralink
-Installed-Size: 30715
+Installed-Size: 30727
 Description:  nixio description

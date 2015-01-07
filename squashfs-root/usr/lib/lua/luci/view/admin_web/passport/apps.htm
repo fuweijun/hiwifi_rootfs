@@ -6,7 +6,7 @@
 ]]--
 
 local ver  = require "luci.version"
-local sid = luci.http.formvalue("sid")
+local sid = luci.http.formvalue_htmlencode("sid")
 
 local sys_time_all = os.date("%Y-%m-%d %X", os.time())
 
@@ -41,11 +41,18 @@ local sys_time_all = os.date("%Y-%m-%d %X", os.time())
 		<br><br>
 	</div>
 </div>
+<div id="oauthverify" style="display:none">
+<form id="oauthverifyform" action="https://app.hiwifi.com/store.php?m=oauth&a=verify" method="post">
+<input type="hidden" name="token" value="" />
+<input type="hidden" name="sid" value="" />
+</form>
+</div>
 
 <script type="text/javascript">
 <!--
 
 $(function(){
+    var sid = '<%=sid%>';
 	$.getJSON("<%=luci.dispatcher.build_url("api", "system","is_internet_connect")%>",{},function(rsp) 
 	{ 
 		if(rsp.isconn == false){
@@ -61,20 +68,10 @@ $(function(){
 			  success: function(rsp,item) 
 				{  
 				  if(rsp.code == 0){
-						
-						var form = $("<form/>", { action:'https://app.hiwifi.com/store.php?m=oauth&a=verify' ,method:"post"});
-							form.append(  $("<input/>",{ type:'text',  name:'token',  value:rsp.token }));
-						<%
-						if sid ~= nil then
-						%>
-							form.append( $("<input/>",{ type:'text',   name:'sid',   value:<%=sid%> }));
-						<%
-						end
-						%>
-							$("body").append(form);
-							form.submit();
-							form.remove();
-
+						$("input[name='token']").val(rsp.token);
+						$("input[name='sid']").val(sid);
+					    $("#oauthverifyform").submit();
+					    $("#oauthverifyform").remove();
 					} else {
 						$("#msg_box").html("<span style='color:red'>"+rsp.msg+"<br><br><span id='moreinfo'></span></span>");
 					}

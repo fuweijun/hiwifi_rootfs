@@ -2,14 +2,14 @@ Package: ntfs-3g
 Version: 2013.1.13-1-fuseext
 Depends: libc, kmod-fuse, libfuse, libpthread
 Provides: 
-Source: /home/build/hiwifi/branch/release0.9005/HC5661/feeds/ntfs-3g
+Source: /ROOT/diskb/hiwifi/branch/release0.9007/HC5661/feeds/ntfs-3g
 Section: utils
 Status: unknown ok not-installed
 Essential: no
 Priority: optional
 Maintainer: Bud <wrt_buddhay@gmx.net>
 Architecture: ralink
-Installed-Size: 147178
+Installed-Size: 146959
 Description:  Ntfs-3g is a NTFS driver, which can create, remove, rename,
  move files, directories, hard links, and streams. It can read
  and write files, including streams and sparse files. It can

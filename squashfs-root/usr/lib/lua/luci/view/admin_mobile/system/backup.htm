@@ -15,7 +15,7 @@ local random = math.random()
 	<p>
 	<input type="button" value="备份" class="btn inline fl" id="backup_btn">
 	</p>
-	<p>
+	<p id="restore_btn_view" style="display:none">
 	<input type="button" value="还原(会自动重启)" class="btn inline fl" id="restore_btn">
 	</p>
 </div>
@@ -27,8 +27,10 @@ function update_backup_info(){
          if(data.code == "0"){
             if(data.backup == "1"){
                 $("#backup_info_div").html('<font color="green">上次备份：'+data.mtime+'</font>');
+                $("#restore_btn_view").show();
             }else{
                 $("#backup_info_div").html('<font color="red">无备份</font>');
+                $("#restore_btn_view").hide();
             }
          }else{
             $("#backup_info_div").html(data.msg);

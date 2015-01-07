@@ -9,5 +9,5 @@ Essential: yes
 Priority: optional
 Maintainer: Felix Fietkau <nbd@openwrt.org>
 Architecture: ralink
-Installed-Size: 30752
+Installed-Size: 30684
 Description:  POSIX thread library

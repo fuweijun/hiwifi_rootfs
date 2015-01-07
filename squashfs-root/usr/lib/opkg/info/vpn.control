@@ -1,5 +1,5 @@
 Package: vpn
-Version: 1-20140611
+Version: 1-20140917
 Depends: libc
 Provides: 
 Source: package/network/services/vpn
@@ -9,5 +9,5 @@ Essential: no
 Priority: optional
 Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
 Architecture: all
-Installed-Size: 3311
+Installed-Size: 3323
 Description:  l2tp/pptp  control script

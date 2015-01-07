@@ -10,3 +10,4 @@ maxfail 0
 lcp-echo-failure 5
 lcp-echo-interval 0
 ignore-confreq
+chap-client-timeout 30

@@ -2,13 +2,13 @@ Package: at
 Version: 3.1.13-20140715
 Depends: libc, libelf
 Provides: 
-Source: /home/build/hiwifi/branch/release0.9005/HC5661/feeds/at
+Source: /ROOT/diskb/hiwifi/branch/release0.9007/HC5661/feeds/at
 Section: utils
 Status: unknown ok not-installed
 Essential: no
 Priority: optional
 Maintainer: Luka Perkov <openwrt@lukaperkov.net>
 Architecture: ralink
-Installed-Size: 24109
+Installed-Size: 24062
 Description:  At and batch read shell commands from standard input storing them as a job to
  be scheduled for execution in the future.

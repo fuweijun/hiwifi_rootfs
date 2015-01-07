@@ -1,0 +1,13 @@
+Package: libestr
+Version: 0.1.9-1
+Depends: libc
+Provides: 
+Source: /ROOT/diskb/hiwifi/branch/release0.9007/HC5661/package/libestr
+Section: libs
+Status: unknown ok not-installed
+Essential: no
+Priority: optional
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Architecture: ralink
+Installed-Size: 3812
+Description:  libestr - some essentials for string handling (and a bit more)

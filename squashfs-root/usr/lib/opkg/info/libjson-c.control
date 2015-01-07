@@ -9,5 +9,5 @@ Essential: no
 Priority: optional
 Maintainer: Felix Fietkau <nbd@openwrt.org>
 Architecture: ralink
-Installed-Size: 12631
+Installed-Size: 12658
 Description:  This package contains a library for javascript object notation backends.

@@ -56,9 +56,6 @@ case "$1" in
 	;;
 esac
 
-# user rules
-[ -x /etc/udhcpc.user ] && . /etc/udhcpc.user
-
 [ -d /etc/udhcpc.d ] && {
 	for SCRIPT in /etc/udhcpc.d/*
 	do

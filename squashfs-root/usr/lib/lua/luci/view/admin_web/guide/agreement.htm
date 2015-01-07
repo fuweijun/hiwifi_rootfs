@@ -44,32 +44,13 @@ local ver  = require "luci.version"
 var internet_check_page_html = '';
 $(function(){
     $("#accept_agreement").click(function(){
-        if(has_internet_check_page_html()){
-            $("html").html(internet_check_page_html);
-        }else{
-            window.location.href='<%=luci.dispatcher.build_url("admin_web", "guide", "index").."?accept=1"%>';
-        }
+        window.location.href='<%=luci.dispatcher.build_url("admin_web", "guide", "index").."?accept=1"%>';
+        return false;
     })
 
-    var request_date =  {"username":"admin", "password":"<%=luci.version.default_password%>"}; 
-    $.post("<%=luci.dispatcher.build_url("admin_web", "guide", "internet_check")%>?check_backup_file=1",request_date,function(rsp) 
-    {
-        internet_check_page_html = rsp;
-    }).error(function() {
-    });
-
     function to_next(){
-        if(has_internet_check_page_html()){
-            $("html").html(internet_check_page_html);
-        }else{
-            $("#loginForm").submit();
-        }
-    }
-
-    function has_internet_check_page_html(){
-        return internet_check_page_html &&
-            internet_check_page_html != '' &&
-            internet_check_page_html.indexOf("</html>") > -1;
+        $("#loginForm").submit();
+        return false;
     }
 })
 </script>

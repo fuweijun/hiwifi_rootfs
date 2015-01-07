@@ -2,7 +2,7 @@
 
 	local ver  = require "luci.version"
 	local disp = require "luci.dispatcher"
-	local remote_addr = luci.http.getenv("REMOTE_ADDR")
+	local remote_addr = luci.http.getenv_htmlencode("REMOTE_ADDR")
 	local remote_mac = luci.sys.net.ip4mac(remote_addr) or ""
 	
  	local board_type = luci.util.get_sys_board()
@@ -15,9 +15,9 @@
 	math.randomseed(os.time())
 	local random = math.random()
 	
-	local clinet_bind = luci.http.formvalue("clinet_bind")
-	local guide_mode = luci.http.formvalue("guide_mode")
-	local isshow = luci.http.formvalue("isshow")
+	local clinet_bind = luci.http.formvalue_htmlencode("clinet_bind")
+	local guide_mode = luci.http.formvalue_htmlencode("guide_mode")
+	local isshow = luci.http.formvalue_htmlencode("isshow")
 	
 	local net = require "hiwifi.net"
 	local bridge_html = ""
@@ -50,7 +50,7 @@ end %>
 <div id="download_app_div" data-ajax="false" style="padding: 5px; display:none;">
     <a id="download_app_btn" href="#" target="_self" data-ajax="false" style="color: green; font-weight: bold; font-size: 15px;">使用手机客户端，把<%=luci.i18n.translate("key_company")%>放进口袋里 >></a>
 </div>
-<div class="sd-top-tip" style="display:none">
+<div class="sd-top-tip" style="display:none" data-ajax="false">
     <span class="sd-icon-warn-s"></span>
     <span id="sd_info"></span>
 </div>
@@ -101,7 +101,7 @@ end %>
         <li data-theme="c"> 
             <a href="<%=luci.dispatcher.build_url('admin_mobile','backup')%>?<%=random%>" data-transition="slide" style="height:80px;"> <img id="backup_restore_img" src="<%=resource%>/mobile/image/backup_restore_050614.png" style="padding:10px">
             <div class="title">备份还原</div>
-            <div class="info">设备名称、限速设备、可疑设备和信任设备</div>
+            <div class="info">设备名称、限速设备<br/>可疑设备和信任设备</div>
             </a>
         </li>
     </ul>
@@ -184,6 +184,7 @@ end %>
 			}
 			
 			//system/set_led_status 
+            $('#set_led').unbind("click");
 			$("#set_led").click(function(){
 				set_led_status();
 			})
@@ -241,6 +242,7 @@ end %>
 			}
 			
 			//system/set_txp_status 
+			$('#set_txp').unbind("click");
 			$("#set_txp").click(function(){
 				set_txp_status();
 			})
@@ -350,16 +352,24 @@ function smaller(a, b){
     return parseInt(a) < parseInt(b);
 }
 	
+function translate(key){
+    return translator.translate(key);
+}
+
 function get_sd_state(){
     var mill = now();
     var request_data = {};
-    $.getJSON('<%=luci.dispatcher.build_url("api", "system", "sd_state")%>?'+mill,request_data,function(rsp) 
+    $.getJSON('<%=luci.dispatcher.build_url("api", "storage", "state")%>?'+mill,request_data,function(rsp) 
     { 
         var msg = rsp.msg;
         var code = rsp.code;
         var state = rsp.state;
-        var sdsize = rsp.sdsize;
+        var sdsize = rsp.size;
         var minsize = rsp.minsize;
+        var type = "";
+        if(rsp.data){
+            type = rsp.data.type;
+        }
         if(state != laststate){
             sd_error = false;
             $(".sd-top-tip").hide();
@@ -367,37 +377,46 @@ function get_sd_state(){
         }
         laststate = state;
         if(code == 0 || code == "0"){
-            if(state == "removed"){
-                $("#sd_info").html("未插入SD卡");
-                $(".sd-top-tip").show();
-            }else if(state == "not-formated"){
-                if(sdsize < minsize){
+            if(type != 'NULL'){
+                if(state == "removed"){
+                    $("#sd_info").html("未插入"+translate(type));
                     $(".sd-top-tip").show();
-                    $("#sd_info").html("SD卡太小，最低要求"+minsize+"M，当前"+sdsize+"M");
-                }else{
+                }else if(state == "not-formated" || state == "mount-failed"){
+                    var msg = ""
+                    if(storage.compare_size(sdsize, minsize) < 0){
+                        msg = translate(type)+"太小，最低要求"+storage.conversion(minsize, 'G')+"，当前"+storage.conversion(sdsize, 'G')
+                    }else{
+                        msg = "您的"+translate(type)+"文件格式不符，请<a href='<%=luci.dispatcher.build_url("admin_mobile","sd_manual_part")%>?<%=random%>' id='system_sd_manual_part'>格式化</a>"
+                    }
+                    $("#sd_info").html(msg);
                     $(".sd-top-tip").show();
-                    $("#sd_info").html("您的SD卡文件格式不符，请<a href='<%=luci.dispatcher.build_url("admin_mobile","sd_manual_part")%>?<%=random%>' id='system_sd_manual_part'>格式化</a>");
-                }
-            }else if(state == "inserted" || state == "umounted"){
-                //$(".sd-top-tip").hide();
-                
-                setTimeout(function(){
-                    if(laststate == "inserted" && smaller(add(laststatetime, 10), now())){
-                        $("#sd_info").html("SD卡有异常，请重启路由器");
-                        $(".sd-top-tip").show();
-                        sd_error = true;
-                    }
-                }, 10000);
-                
-                setTimeout(function(){
-                    if(laststate == "umounted" && smaller(add(laststatetime, 10), now())){
-                        $("#sd_info").html("请拔掉SD卡再插上");
-                        $(".sd-top-tip").show();
-                        sd_error = true;
-                    }
-                }, 10000);
+                }else if(state == "inserted" || state == "umounted"){
+                    setTimeout(function(){
+                        if(laststate == "inserted" && smaller(add(laststatetime, 10), now())){
+                            $("#sd_info").html(translate(type) + "有异常，请重启路由器");
+                            $(".sd-top-tip").show();
+                            sd_error = true;
+                        }
+                    }, 10000);
                     
-            }else if(state == "mounted"){
+                    setTimeout(function(){
+                        if(laststate == "umounted" && smaller(add(laststatetime, 10), now())){
+                            $("#sd_info").html("请拔掉"+translate(type)+"再插上");
+                            $(".sd-top-tip").show();
+                            sd_error = true;
+                        }
+                    }, 10000);
+                        
+                }else if(state == "mounted"){
+                    $(".sd-top-tip").hide();
+                }else if(state == "auto-formated"){
+                    $("#sd_info").html(translate(type)+"正在格式化中...");
+                    $(".sd-top-tip").show();
+                }else if(state == "lock"){
+                    $("#sd_info").html("扩展存储为只读模式");
+                    $(".sd-top-tip").show();
+                }
+            }else{
                 $(".sd-top-tip").hide();
             }
             setTimeout("get_sd_state()", 5000);

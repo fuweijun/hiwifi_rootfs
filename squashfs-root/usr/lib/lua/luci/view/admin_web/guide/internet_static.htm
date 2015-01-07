@@ -3,7 +3,7 @@ local ver  = require "luci.version"
 local util  = require "luci.util"
 local http = require "luci.http"
 
-local autotype = util.fliter_unsafe(http.formvalue("autotype"))
+local autotype = http.formvalue_htmlencode("autotype")
 
 %>
 <!DOCTYPE html>
@@ -71,18 +71,22 @@ $(window).load(function() {
         }else if(type == "nonet"){
             window.location.href='<%=luci.dispatcher.build_url("admin_web", "guide", "internet_success")%>'+'?type=nonet&autotype='+autotype;
         }
+        return false;
     });
     
     listerenterkeydown(function(){
         form_submit();
+        return false;
     });
     
     $("#submit").click(function(){
         form_submit();
+        return false;
     });
     
     $("#forse_next").click(function(){
         link_success();
+        return false;
     });
 });
 
@@ -176,6 +180,7 @@ function update_btn(){
 
 function link_success(){
     window.location.href='<%=luci.dispatcher.build_url("admin_web", "guide","internet_success")%>';
+    return false;
 }
 
 </script>

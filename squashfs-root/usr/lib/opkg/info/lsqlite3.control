@@ -9,5 +9,5 @@ Essential: no
 Priority: optional
 Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
 Architecture: ralink
-Installed-Size: 11284
+Installed-Size: 11279
 Description:  LuaSQLite 3 is a thin wrapper around the public domain SQLite3 database engine.

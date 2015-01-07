@@ -177,7 +177,7 @@ min-width: 618px;
 .box{ border: 1px solid #ddd; margin: 0 20px; padding: 10px 10px 20px; height: auto;}
 
 /* menu */
-.menu{ position: absolute; margin: 0 0 0 20px; *margin-left: -149px; width: 150px; height: 36px; line-height: 36px; font-size: 14px; font-family: Microsoft Yahei; background: #f4f4f4; text-align: left; border-top: 1px solid #ddd;}
+.menu{ position: absolute; margin: 0 0 0 20px; *margin-left: -149px; width: 150px; height: 30px; line-height: 30px; font-size: 14px; font-family: Microsoft Yahei; background: #f4f4f4; text-align: left; border-top: 1px solid #ddd;}
 .menu a{padding-left:15px; display: block; border: 1px solid #ddd; border-top: none; background: #f9f9f9;}
 .menu a.selected{ color: #ADD45B; border-right-color: #fff; background: #fff;}
 .menu .pipe{ display: none;}

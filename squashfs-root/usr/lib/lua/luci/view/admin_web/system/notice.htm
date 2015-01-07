@@ -1,0 +1,116 @@
+<%
+--[[
+	Info	通知
+	Author	Chaogang Liu <chaogang.liu@hiwifi.tw>
+	Copyright	2014
+]]--
+
+local ver  = require "luci.version"
+local tw = require "tw"
+local sys_version = tw.get_version():match("^([^%s]+)")
+%>
+
+<!DOCTYPE html>
+<html>
+<head> 
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta name="format-detection" content="telephone=no" />
+<title>HiWiFi 路由器</title>
+<link rel="stylesheet" href="<%=resource%>/web/css/style.css?v=<%=ver.svnRevNum%>" type="text/css"/>
+<script type="text/javascript" src="<%=resource%>/web/js/jquery-1.8.1.min.js?v=<%=ver.svnRevNum%>"></script>
+<script type="text/javascript" src="<%=resource%>/web/js/artDialog/jquery.artDialog.js?skin=blueskin"></script>
+<script src="<%=resource%>/web/js/artDialog/plugins/iframeTools.source.js?v=<%=ver.svnRevNum%>"></script>
+<script src="<%=resource%>/web/js/util.js?v=<%=ver.svnRevNum%>"></script>
+<style type="text/css">
+    .sheet{
+        height: 100%;
+    }
+    #notice_content{
+       font-size: 14px; 
+       height: 100%;
+    }
+    
+    #notice_content a{
+        cursor: pointer;
+    }
+    
+    #btn_div{
+       padding-left: 40%; 
+       padding-top: 40px;
+       margin-bottom: 20px;
+    }
+</style>
+</head>
+<body>
+<div class="title">
+	<h2 id="notice_title">通知</h2>
+</div>
+<div class="sheet">
+	<div id="notice_content">
+	</div>
+	<div id="btn_div">
+	  <input type="submit" id="submit_btn" value="知道了" class="btn" />
+    </div>
+</div>
+<script type="text/javascript">
+$(function(){
+var sys_version = '<%=sys_version%>';
+
+function read(post_data, success_callback){
+    var post_data_local = post_data
+    $.post("<%=luci.dispatcher.build_url("api", "notice","read")%>",post_data_local,function(rsp) 
+    {
+        if(rsp.code==0){
+            if(typeof(success_callback) == "function"){
+                success_callback()
+            }
+        }  else {
+        }
+    });
+}
+
+function read_then_close(notice){
+    var post_data = {}
+    post_data['nid'] = notice.nid;
+    read(post_data, function(){
+        window.parent.art.dialog.list['notice_box'].close();
+    })
+}
+
+function check_notice(){
+    var request_date = {}; 
+    $.getJSON("<%=luci.dispatcher.build_url("api", "notice","inbox")%>",request_date,function(rsp) 
+    {
+        if(rsp.code == 0){
+            var data = rsp.data;
+            if(data){
+                for(var i=0; i< data.length; i++){
+                    var notice = data[i]
+                    var sys_version_like = notice.sys_version_like
+                    if(sys_version && sys_version.indexOf(sys_version_like) > -1){
+                        var content = notice.content;
+                        var title = notice.title;
+                        $("#notice_title").html(title);
+                        $("#notice_content").html(content);
+                        
+                        $("#qos_link").click(function(){
+                            window.parent.open_windows("qos_setup")
+                            read_then_close(notice)
+                        })
+                        
+                        $("#submit_btn").click(function(){
+                            read_then_close(notice)
+                        })
+                        break;
+                    }
+                }
+            }
+        }
+    })
+}
+
+check_notice()
+})
+</script>
+</body>
+</html>

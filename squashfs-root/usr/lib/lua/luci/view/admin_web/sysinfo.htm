@@ -168,38 +168,6 @@ $(function(){
 	get_wifi_info();
 	
 	function get_wifi_info(){
-		if(top.global_wifi_status){//走缓存
-			$("#wifi_ssid").html(UrlDecode(top.global_wifi_ssid_show));
-			if(top.global_wifi_encryption == "none"){
-				$("#wifi_encryption").html("无加密");
-			}else if(top.global_wifi_encryption == "mixed-psk+aes" || top.global_wifi_encryption == "mixed-psk"){
-				$("#wifi_encryption").html("强加密(WPA/WPA2个人版)");
-			}
-			if((top.global_wifi_channel=='0' || top.global_wifi_channel=='') && top.global_wifi_device){
-				var request_date = {"device":top.global_wifi_device};
-				
-				$.getJSON("<%=luci.dispatcher.build_url("api", "wifi","get_channel")%>",request_date,function(rsp) 
-				{ 
-					if (rsp.channel){
-						if(rsp.channel == "" || rsp.channel == "0"){
-							$("#wifi_channel").html(rsp.channel_autoreal+"（自动选择）");
-						} else {
-							$("#wifi_channel").html(rsp.channel+"（手动选择）");
-						}
-					}
-				});
-				
-			}else{
-				$("#wifi_channel").html(top.global_wifi_channel+"（手动选择）");
-			}
-			if(top.global_wifi_status=='1'){
-				$("#wifi_status").html("工作中");
-			}else{
-				$("#wifi_status").html("<span style='color:red'>已关闭</span>");
-			}
-			return;
-		}
-		
 		var request_date = {};		
 		$.getJSON("<%=luci.dispatcher.build_url("api", "wifi","get_status_list")%>",request_date,function(rsp) 
 		{
@@ -212,7 +180,7 @@ $(function(){
 				$.getJSON("<%=luci.dispatcher.build_url("api", "wifi","view_detail")%>",request_date,function(rsp) 
 				{ 
 					if(rsp.code == 0){
-						$("#wifi_ssid").html(rsp.ssid);
+						$("#wifi_ssid").text(rsp.ssid);
 						if(rsp.status == 1){
 							$("#wifi_status").html("工作中");
 						} else {

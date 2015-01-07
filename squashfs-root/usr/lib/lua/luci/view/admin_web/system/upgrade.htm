@@ -5,10 +5,10 @@
 	Copyright	2012
 ]]--
 
-local mode = luci.http.formvalue("mode")
+local mode = luci.http.formvalue_htmlencode("mode")
 local ver  = require "luci.version"
 local adv_menu = luci.util.get_adv_menu()
-local request_uri = luci.http.getenv("REQUEST_URI")
+local request_uri = luci.http.getenv_htmlencode("REQUEST_URI")
 local board_type = luci.util.get_sys_board()
 %>
 <!DOCTYPE html>
@@ -42,7 +42,7 @@ end
 if mode ~= "out" then
 %>
 <div class="menu">
-	<% luci.util.output_adv_menu() %>
+	<% include("admin_web/menu/adv_menu") %>
 </div>
 <%
 end
@@ -117,11 +117,12 @@ function flash_percent(callback){
 	$.getJSON("<%=luci.dispatcher.build_url("api", "system","upgrade_download_percent")%>",request_date,function(rsp) 
 	{ 
 		if(rsp.code == 0){
+		    var state = rsp.state;
 			var per = parseInt(rsp.percent); 
 			if(per<101 && per>0) {
 				$("#persent").html(per);
 				$("#persent_width").css("width",per+"%");
-				if (per==100){
+				if (state == 'finish' && per==100){
 					$("#persent").html(100);
 					$("#persent_width").css("width","100%");
 					$("#down_info").html("下载成功!");

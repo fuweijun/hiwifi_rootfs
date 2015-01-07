@@ -10,7 +10,7 @@ fi
 
 HI_COREDUMP_PATH="/tmp/coredump"
 INFOGATHER_BASE_PATH="/tmp/infogather"
-prochk_process_list="nginx dnsmasq fcgi-cgi netifd inet_chk.sh cmagent ubusd hotplug2"
+prochk_process_list="nginx dnsmasq fcgi-cgi netifd inet_chk.sh cmagent ubusd hotplug2 rsyslogd"
 HI_HEALTH_LOG_FILE="/tmp/infogather/hidaemon.log"
 mkdir -p $INFOGATHER_BASE_PATH
 

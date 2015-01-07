@@ -73,12 +73,37 @@ dump_wan_status() {
 		json_get_var iface_pending pending
 		json_get_var iface_proto proto
 		
-		[ $iface_up -eq 0 -a $iface_proto = "pppoe" ] && {
-			err=$(tail -n 150 /var/log/ppp.log | grep "Plugin rp-pppoe.so loaded" -B 14 | tail -n 15)
-			msg=$(echo "$err" | grep "E=" | sed 's/^.*:..:.. //' | tail -n 1)
+		[ $iface_up -eq 0 ] && {
+			. /lib/netifd/log_analysis.sh
+			error_msg $iface_proto msg
 		}
 	fi
 
+	json_init
+	json_add_boolean dev_up "$dev_up"
+	json_add_boolean dev_link "$dev_link"
+	json_add_boolean iface_up "$iface_up"
+	json_add_boolean iface_pending "$iface_pending"
+	json_add_string msg "$msg"
+	json_dump
+}
+
+dump_vpn_status() {
+	. /lib/functions/network.sh
+	
+	dev_up=1
+	dev_link=1
+	
+	json_load "$(ubus call network.interface.vpn status -S)"
+	json_get_var iface_up up
+	json_get_var iface_pending pending
+	json_get_var iface_proto proto
+	
+	if [ $iface_up -eq 0 ]; then
+		. /lib/netifd/log_analysis.sh
+		error_msg $iface_proto msg
+	fi
+	
 	json_init
 	json_add_boolean dev_up "$dev_up"
 	json_add_boolean dev_link "$dev_link"
