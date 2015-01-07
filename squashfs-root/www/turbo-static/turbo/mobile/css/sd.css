@@ -1,0 +1,156 @@
+body,div,dl,dt,dd,ul,ol,li,h1,h2,h3,h4,h5,h6,pre,
+form,fieldset,input,textarea,p,blockquote,th,td {
+    padding: 0;
+    margin: 0;
+    font-weight: normal;
+}
+body{
+	font-size: 12px;
+	color: #343434
+}
+.sd-entra{
+	font-size: 14px;
+	padding:0.7em 15px;
+	color:#2f3e46;
+	border:1px solid #ccc;
+	box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+.orange-color{
+	color: #e25c15
+}
+.sd-entra:hover{
+	cursor: pointer;
+}
+.sd-icon{
+	float: left;
+	width: 17px;
+	margin-right: 10px;
+	height:21px;
+	overflow: hidden;
+}
+.sd-box{
+	height: 100%
+}
+.sd-title{
+	font-size: 24px;
+	margin-bottom: 5px;
+}
+.sd-box-info{
+	font-size:12px;
+	line-height: 1.8
+}
+.sd-format-no{
+	padding:25px 20px;
+}
+.sd-check-again{
+	display: block;
+	color:#008dc7;
+}
+.sd-icon-1{
+	float: left;
+	width:14px;
+	height:32px;
+	margin-right: 10px;
+	vertical-align: middle;
+	background: url("../image/sd-icon-1.png") no-repeat left top;
+}
+
+.sd-box .sd-btn{
+	display: block;
+	height:55px;
+	line-height: 55px;
+	margin:0 10px 10px;
+	font-size: 20px;
+	background-color:#1face4;
+	color:#fff;
+	text-align: center;
+	border-radius: 5px;
+}
+.sd-box .sd-btn:hover{
+    color:#fff;
+}
+.sd-btn.formatting{
+	color:#999;
+	background-color: #ccc;
+}
+.sd-btn.green{
+	background-color: #00a857;
+}
+.sd-btn-info{
+	font-size: 14px;
+	text-align: center;
+}
+.sd-btn-info.fail{
+	color:#e36629;
+}
+.sd-btn-info.success{
+	color:#00a857;
+}
+.sd-icon-formatting{
+	display: inline-block;
+	width: 16px;
+	height: 16px;
+	vertical-align: middle;
+	margin-right: 5px;
+	background: url("../image/loading.gif") no-repeat left top;
+}
+.sd-remind{
+	position: absolute;
+	bottom:10px;
+	width: 100%;
+	color:#a6a6a6;
+	font-size: 10px;
+	text-align: center;
+}
+
+.sd-box-warn{
+	padding:25px 20px;
+	margin-bottom: 30px;
+	background-color:#facfb4;
+}
+.sd-icon-wran{
+	float: left;
+	width:32px;
+	height:29px;
+	margin-right: 10px;
+	background: url("../image/sd-icon-warn.png") no-repeat left top;
+}
+.sd-box-p{
+	overflow: hidden;
+}
+.sd-input-tip{
+	font-size: 14px;
+	line-height: 2;
+	color:#272727;
+	text-align: center;
+}
+.sd-input-tip span{
+	color:#e36629
+}
+.sd-input{
+	display: block;
+	width: 90%;
+	font-size: 14px;
+	margin:16px auto;
+	padding:12px 10px;
+	border:1px solid #7f7f7f;
+	border-radius: 3px;
+}
+/*顶部提示*/
+.sd-top-tip{
+	padding:16px 0;
+	color:#e25c15;
+	background-color: #facfb4;
+	text-align: center;
+}
+.sd-icon-wran-s{
+	display: inline-block;
+	width: 13px;
+	height: 12px;
+	margin-right: 5px;
+	vertical-align: middle;
+	background: url("../image/sd-icon-warn-small.png") no-repeat left top;
+}
+.sd-top-tip a{
+	color:#008fc9;
+}

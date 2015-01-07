@@ -1,0 +1,14 @@
+#!/bin/sh
+
+[ "$#" -lt 2 ] && exit 1
+
+time=$1
+echo $time | grep "[^0-9]"
+if [ "$?" -eq 0 ] ; then
+	exit 1
+fi
+
+shift
+command=$*
+
+echo "$command" | at now + $time seconds >/dev/null 2>&1

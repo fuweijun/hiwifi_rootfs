@@ -1,0 +1,13 @@
+Package: speedtest-upload
+Version: 0.0.1-20140226
+Depends: libc, libstdcpp
+Provides: 
+Source: /home/build/hiwifi/branch/release0.9005/HC5661/package/speedtest-upload
+Section: net
+Status: unknown ok not-installed
+Essential: no
+Priority: optional
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Architecture: ralink
+Installed-Size: 3247
+Description:  speedtest-upload is a multiple task uploader for speedtest.

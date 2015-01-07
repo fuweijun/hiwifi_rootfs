@@ -1,0 +1,219 @@
+<%
+local ver  = require "luci.version"
+local util = require "luci.util"
+
+--local _,_,_,wifi_ssid = util.get_wifi_device_status()
+local wifi_status,wifi_device,wifi_ifname,wifi_ssid,wifi_encryption,wifi_channel,wifi_mode = luci.util.get_wifi_device_status()
+
+local guide_open_app = luci.util.exec("cat /tmp/guide_open_app 2>/dev/null")
+%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title><%=luci.i18n.translate("key_company")%>｜首次安装－修改无线密码</title>
+<link rel="stylesheet" href="<%=resource%>/guide/css/style.css?v=<%=ver.svnRevNum%>" type="text/css"/>
+<script src="<%=resource%>/guide/js/jquery-1.8.2.min.js?v=<%=ver.svnRevNum%>"></script>
+<script src="<%=resource%>/guide/js/custom_checkbox_and_radio.js?v=<%=ver.svnRevNum%>"></script>
+<script src="<%=resource%>/web/js/util.js?v=<%=ver.svnRevNum%>"></script>
+<script src="<%=resource%>/guide/js/application.js?v=<%=ver.svnRevNum%>"></script>
+<script src="<%=resource%>/guide/js/twx_guide.js?v=<%=ver.svnRevNum%>"></script>
+</head>
+<body>
+    <div id="page">
+        <div id="header">
+            <h1><span id="logo"><%=luci.i18n.translate("key_company")%>｜首次安装</span></h1>
+        </div><!-- /header -->
+                
+        <div id="content">
+            <h2 style="font-size: 1.3em;">简单两步，保障上网安全</h2>
+            <div class="pw-step1">
+
+            </div>
+            <div class="pw-step1-info">
+                <div class="tit">设置无线网络密码</div>
+                <div class="text">用途：手机连接上网时使用</div>
+            </div>
+            <form id="form1" method="post">
+            <div>
+                <table class="form-table">
+                    <tr>
+                        <th class="text-th" style="height:60px;line-height:60px;">无线名称：</th>
+                        <td>
+                            <input id="ssid_input" type="text" class="txt radius J_ssid" maxLength="32" minLength="1" value="<%=wifi_ssid%>" name="ssid" style="display:none" />
+                            <div id="change_ssid_view">
+                                <%=wifi_ssid%>&nbsp;<a id="change_ssid" href="javascript:void();return false;">修改</a>
+                            </div>
+                            <h2 id="ssid_name" style="display:none"><%=wifi_ssid%></h2>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>密　　码：</th>
+                        <td>
+                            <input type="text" class="txt radius J_ssid_key J_pw" blank="true" maxLength="63" minLength="8" name="key" />
+                            <div class="tip-bar">至少8位，区分大小写</div>
+                            <div class="error" style="display: none">密码错误，请重新输入</div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            
+                <input type="hidden" maxLength="32" minLength="1" value="<%=wifi_ssid%>" name="old_ssid" />
+                <select id="encryption_select" name="encryption" class="txt-input select" style="display:none;">
+                    <option value="none">无加密</option>
+                    <option value="mixed-psk">强加密(WPA/WPA2个人版)</option>
+                </select>
+                <input type="hidden" name="device" value="radio0.network1" class="device">
+                <input type="hidden" name="delay" value="1" />
+                <p id="errormsg" class="error"></p>
+                <p id="ssid_change_show" style="display:none; background: #FFD400; border-color: #FFD400; color: #000; font-size: 14px;"></p>
+                <a id="submit_btn" class="btn radius">下一步</a>
+            </form>
+        </div><!-- /content -->
+
+        <div id="footer">
+        </div><!-- /footer -->
+    </div><!-- /page -->
+</body>
+<script type="text/javascript">
+var old_wifi_ssid = '<%=luci.util.striptags(wifi_ssid)%>';
+var saving = false;
+var wifi_change = false;
+var guide_online = '<%=luci.dispatcher.build_url("admin_web", "guide","guide_online")%>';
+var new_ssid;
+var new_wifi_password;
+var timeout = 35000;
+var sec;
+var guide_open_app = '<%=guide_open_app%>';
+
+$(function(){
+    $('.J_ssid').blur(function(){
+        $(this).lengthCheck({'blurCheck':true,'errorClass':'input-error'});
+    })
+    $('.J_ssid_key').blur(function(){
+        $(this).lengthCheck({'blurCheck':true,'errorClass':'input-error'});
+    })
+    
+    $("#complete_btn").click(function(){
+        to_admin();
+    });
+    
+    listerenterkeydown(function(){
+        form_submit();
+    });
+    
+    $("#submit_btn").click(function(){
+        form_submit();
+    });
+    
+    $("#change_ssid").click(function(){
+        $("#ssid_input").show();
+        $("#change_ssid_view").hide();
+    });
+});
+
+function form_submit(){
+    new_wifi_password = '';
+    $(".J_ssid").trigger("blur");
+    $(".J_ssid_key").trigger("blur");
+    if($(".input-error").size() > 0){
+        return;
+    }
+    if(saving == true){
+        return;
+    }
+    $("#ssid_change_show").hide();
+    $(".error").html('');
+    saving = true;
+    
+    new_ssid = $("input[name='ssid']").val();
+    new_ssid = $.trim(new_ssid);
+    new_ssid = removeHtmlTag(new_ssid);
+    $("input[name='ssid']").val(new_ssid);
+    $("input[name='key']").val($.trim($("input[name='key']").val()))
+    var wifi_password = $("input[name='key']").val();
+    if(HaveChineseStr(wifi_password)){
+        $(".error").html('密码只能使用英文符号及数字');
+        saving = false;
+        return;
+    } else {
+        $("#submit_btn").show();
+        sec = Math.ceil(timeout/1000);
+        saving = true;
+        update_btn();
+        if(old_wifi_ssid != new_ssid || wifi_password != ''){
+            new_wifi_password = wifi_password;
+            $("#ssid_name").html(new_ssid);
+            
+            if(wifi_password.length > 0){
+                $("#encryption_select option[value='mixed-psk']").attr("selected", true); 
+            }else{
+                $("#encryption_select option[value='none']").attr("selected", true); 
+            }
+            wifi_change = true;
+            
+            var request_date =  $("#form1").serialize();
+            $.ajax({
+              url: '<%=luci.dispatcher.build_url("api", "guide","cache_wifi_config")%>',
+              dataType: 'json',
+              timeout: 10000, //10 seconds timeout
+              type: "POST",
+              data: request_date,
+              success: function(rsp,item) {  
+                    if(rsp.code == 0){
+                       var ssid = rsp.new_ssid;
+                       if(old_wifi_ssid != ssid || wifi_password != ''){
+                            wifi_change = true;
+                       }
+                       new_ssid = ssid;
+                       to_admin();
+                    } else {
+                       $(".error").html(rsp.msg);
+                       $("#submit_btn").html('保存设置');
+                       saving = false;
+                       $("#submit_btn").show();
+                       $("#ssid_change_show").hide();
+                    }
+                },
+                error: function(x, t, m) {
+                   $(".error").html('保存失败');
+                   $("#submit_btn").html('保存设置');
+                   saving = false;
+                }
+            });
+        }else{
+            to_admin();
+        }
+    }
+}
+
+function update_btn(){
+    if(saving == true){
+        if(sec > 0){
+            var mod = sec % 3;
+            if(mod == 0){
+                $("#submit_btn").html("正在保存中...");
+            }else if(mod == 1){
+                $("#submit_btn").html("正在保存中..");
+            }else if(mod == 2){
+                $("#submit_btn").html("正在保存中.");
+            }else{
+                $("#submit_btn").html("正在保存中...");
+            }
+            setTimeout("update_btn()", 1000);
+            sec = sec - 1;
+        }else{
+            $("#submit_btn").html("保存设置");
+        }
+    }else{
+        $("#submit_btn").html("保存设置");
+    }
+}
+
+function to_admin(){
+    window.location = '<%=luci.dispatcher.build_url("admin_web", "guide", "admin")%>';
+}
+
+</script>   
+</html>

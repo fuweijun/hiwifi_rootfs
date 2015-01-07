@@ -1,0 +1,28 @@
+update() {
+  sed -i '/wifi_sleep$/d' /etc/crontabs/root
+  echo "$1 $2 * * * /etc/app/wifi_sleep.script down #wifi_sleep" >> /etc/crontabs/root
+  echo "$3 $4 * * * /etc/app/wifi_sleep.script up   #wifi_sleep" >> /etc/crontabs/root
+  /etc/init.d/cron stop
+  /etc/init.d/cron start
+  return 0
+}
+
+off() {
+  sed -i '/wifi_sleep$/d' /etc/crontabs/root
+  /etc/init.d/cron stop
+  /etc/init.d/cron start
+  return 0
+}
+
+down(){
+  uci set wireless.@wifi-iface[0].disabled=1
+  uci commit
+  wifi
+}
+
+up(){
+  uci set wireless.@wifi-iface[0].disabled=0
+  uci commit
+  wifi
+}
+$1 $2 $3 $4 $5

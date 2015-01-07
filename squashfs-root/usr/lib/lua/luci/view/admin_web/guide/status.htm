@@ -1,0 +1,162 @@
+<%
+local ver  = require "luci.version"
+local http = require "luci.http"
+
+local is_internet_connect = luci.util.is_internet_connect()
+local guide_open_app = luci.util.exec("cat /tmp/guide_open_app 2>/dev/null")
+%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title><%=luci.i18n.translate("key_company")%>｜首次安装</title>
+<link rel="stylesheet" href="<%=resource%>/guide/css/style.css?v=<%=ver.svnRevNum%>" type="text/css"/>
+<script src="<%=resource%>/guide/js/jquery-1.8.2.min.js?v=<%=ver.svnRevNum%>"></script>
+<script src="<%=resource%>/guide/js/custom_checkbox_and_radio.js?v=<%=ver.svnRevNum%>"></script>
+<script src="<%=resource%>/guide/js/jquery.dropkick-1.0.0.js?v=<%=ver.svnRevNum%>"></script>
+<script src="<%=resource%>/guide/js/twx_guide.js?v=<%=ver.svnRevNum%>"></script>
+<script src="<%=resource%>/web/js/util.js?v=<%=ver.svnRevNum%>"></script>
+</head>
+<body>
+    <div id="page">
+        <div id="header">
+            <h1><span id="logo"><%=luci.i18n.translate("key_company")%>｜首次安装</span></h1>
+        </div><!-- /header -->
+        <div id="content">
+            <div class="success-box">
+                设置成功！
+            </div>
+            <div class="success-title">请连接无线网络：</div>
+            <div class="success-info-box">
+                <div><p id="alert"></p></div>
+                <div><span>无线名称：</span><span id="wifi_ssid">加载中...</span></div>
+                <div><span>无线密码：</span><span id="wifi_key">加载中...</span></div>
+            </div>
+            <p id="check_msg" class="error-info"></p>
+            <p id="wifi_restart_view" class="g9" style="display:none;">
+                <span>无线网络重启中...</span>
+                <span id="time_view"></span>
+            </p>
+            <p id="check_net" class="g9">
+            </p>
+        </div><!-- /content -->
+
+        <div id="footer">
+        </div><!-- /footer -->
+    </div><!-- /page -->
+</body>
+<script type="text/javascript">
+var guide_open_app = '<%=guide_open_app%>';
+var new_ssid;
+
+$(window).load(function() {
+    set_agreement_done_active_config();
+});
+
+function to_download(){
+    window.location = "http://www.hiwifi.com/download/all/";
+}
+
+var active_point_interval;
+
+function set_agreement_done_active_config(){
+    $.getJSON('<%=luci.dispatcher.build_url("api", "guide","set_agreement_done_active_config")%>',{},function(rsp) {
+        if(rsp.code == 0){
+            new_ssid = rsp.new_ssid;
+            var new_wifi_key = '(无)';
+            if(rsp.new_key && rsp.new_key != ''){
+                new_wifi_key = rsp.new_key;
+            }
+            $("#wifi_ssid").html(new_ssid);
+            $("#wifi_key").html(new_wifi_key);
+            var restart_wifi_time = rsp.restart_wifi_time;
+            var restart_wifi = rsp.restart_wifi;
+            if(restart_wifi == 1){
+                //$("#alert").html('无线需要重启，请重新连接');
+            }else{
+                setTimeout(function(){
+                    to_next();
+                }, 3000);
+            }
+            if(restart_wifi_time && parseInt(restart_wifi_time) >= 0){
+               var restart_time = parseInt(restart_wifi_time);
+               $("#wifi_restart_view").show();
+               twx_timer(restart_time, function(time){
+                    if(time > 0){
+                        $("#time_view").html('('+time+'秒)');
+                    }else{
+                        $("#time_view").html('(已重启)');
+                        $("#wifi_restart_view").hide();
+                        $("#check_net").html('网络检测中<span id="net_check_active"></span>');
+                        active_point_interval = active_point_start('net_check_active');
+                        to_next();
+                    }
+                })
+            }
+        }else{
+            $("#alert").html('设置失败');
+        }
+    }).fail(function(){
+        $("#alert").html('设置失败');
+    })
+}
+
+function to_next(){
+    test_www();
+}
+
+function test_error(){
+    $("#check_net").hide();
+    $("#check_msg").html('无法连通互联网，请检查');
+    setTimeout("test_www()", 2000);
+    active_point_stop(active_point_interval);
+}
+
+function test_www(){
+    autoLink("http://www.baidu.com/img/bdlogo.gif",{
+    "success":function(){
+        to_download();
+    },"error":function(){
+        test_error();
+    },"timeout":function(){
+        test_error();
+    }},5000);
+
+    $.getScript("http://www.baidu.com",   
+    function(){
+        to_download();
+    }).fail(function(rsp){
+        test_error();
+    });
+}
+
+function active_point_start(show_id, point_num){
+    var show_id_str = '#'+show_id
+    var max_point = 3;
+    if(typeof(point_num) != "undefined" && parseInt(point_num) > 0){
+        max_point = parseInt(point_num);
+    }
+    if($(show_id_str).length <= 0){
+        return false;
+    }
+    return setInterval(function(){
+        var now = new Date();
+        var sec = now.getSeconds();
+        var point_count = sec%max_point + 1;
+        var str = "";
+        for(var i = 0; i < point_count; i ++){
+            str = str + ".";
+        }
+        $(show_id_str).html(str);
+    }, 1000);
+}
+
+function active_point_stop(interval){
+    if(typeof(interval) != "undefined"){
+        clearInterval(interval);
+    }
+}
+
+</script>
+</html>

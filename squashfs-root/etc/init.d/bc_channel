@@ -1,0 +1,18 @@
+#!/bin/sh /etc/rc.common
+
+START=83
+
+#SERVICE_DAEMONIZE=1
+#SERVICE_WRITE_PID=1
+
+start() {
+	sed -i '/bc_channel.sh/d' /etc/crontabs/root
+	echo "* * * * * sh /usr/lib/bc_channel/bc_channel.sh" >> /etc/crontabs/root
+	sed -i '/bc_check.sh/d' /etc/crontabs/root
+	echo "* * * * * sh /usr/lib/bc_channel/bc_check/bc_check.sh" >> /etc/crontabs/root
+}
+
+stop() {
+	sed -i '/bc_channel.sh/d' /etc/crontabs/root
+	sed -i '/bc_check.sh/d' /etc/crontabs/root
+}

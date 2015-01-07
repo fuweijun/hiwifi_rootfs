@@ -1,0 +1,13 @@
+Package: cmagent
+Version: 0.69-20140820
+Depends: libc, libevent2, libevent2-openssl, jansson, libtw, lua, libhiwifi-lua, nixio, luasec, libtw-lua, libauth, libhwf-log, libcurl, libqos
+Provides: 
+Source: /home/build/hiwifi/branch/release0.9005/HC5661/package/cmagent
+Section: net
+Status: unknown ok not-installed
+Essential: no
+Priority: optional
+Maintainer: Hong Shen <sh@ikwcn.com>
+Architecture: ralink
+Installed-Size: 25435
+Description:  Agent of Cloud Messaging Service

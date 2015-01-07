@@ -1,0 +1,62 @@
+#!/bin/sh /etc/rc.common
+
+START=42
+STOP=58
+
+start() {
+	[ "$(cat /etc/nginx/mode 2>/dev/null)" == "normal" ] && {
+		return
+	}
+
+	insmod hwf_smartqos 2> /dev/null
+	if [ -e /etc/app/device_qos ]; then
+		cp /etc/app/device_qos /tmp/device_qos
+		cp /etc/app/device_qos_guaranty /tmp/device_qos_guaranty
+		echo >> /tmp/device_qos
+		echo >> /tmp/device_qos_guaranty
+		while read mac down up user; do 
+			downg=$(awk -v hw=$mac '{if(hw == $1) print $2}' /tmp/device_qos_guaranty)
+			upg=$(awk -v hw=$mac '{if(hw == $1) print $3}' /tmp/device_qos_guaranty)
+			if [ -z "$downg" -o "$downg" ==  "0" ];then
+				downg=-1
+			fi
+
+			if [ -z "$upg" -o "$upg" == "0" ];then            
+				upg=-1                                 
+			fi           
+			
+			echo "$mac $down $up $downg $upg" > /proc/net/smartqos/config
+		done < /tmp/device_qos
+		rm -f /tmp/device_qos
+		rm -f /tmp/device_qos_guaranty
+	fi
+
+	. /lib/functions/hwf_sqos_tc_actions.sh
+	hwf_sqos_setup_tc_qdisc
+
+	enabled=$(uci get smartqos.@smartqos[0].enabled 2>/dev/null)
+	[ "${enabled:-0}" -eq 0 ] && {
+		disable_smartqos
+		return 0
+	} 
+
+	down=$(uci get smartqos.@smartqos[0].down 2>/dev/null)
+	down=$((down / 8))
+	echo $down >/proc/sys/net/smartqos/download_bw
+
+	up=$(uci get smartqos.@smartqos[0].up 2>/dev/null)
+	up=$((up / 8))
+	echo $up >/proc/sys/net/smartqos/upload_bw
+}
+
+disable_smartqos() {
+	echo 0 >/proc/sys/net/smartqos/download_bw
+	echo 0 >/proc/sys/net/smartqos/upload_bw
+}
+
+stop() {
+	. /lib/functions/hwf_sqos_tc_actions.sh
+	hwf_sqos_clean_tc_qdisc
+
+	rmmod hwf_smartqos	
+}

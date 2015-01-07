@@ -1,0 +1,15 @@
+#!/bin/sh /etc/rc.common
+
+START=98
+STOP=02
+
+HI_DAEMON_STATE="/var/state/hidaemon"
+
+start() {
+	echo "start" > $HI_DAEMON_STATE
+}
+
+stop() {
+	echo "stop" > $HI_DAEMON_STATE
+	killall hidaemon &> /dev/null
+}

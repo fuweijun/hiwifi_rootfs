@@ -1,0 +1,55 @@
+#!/bin/ash
+
+SUFIX=hosts
+
+lsmod | grep hwf_kproxy >/dev/null
+if [ $? -ne 0 ]; then
+  exit 0;
+fi
+
+add_host_by_file()
+{
+  while read host; do
+    if [ ! -z "$host" ]; then
+      kproxy -A -H $host
+    fi 
+  done < $1
+}
+
+del_host_by_file()
+{
+  while read host; do
+    if [ ! -z "$host" ]; then
+      kproxy -D -H $host
+    fi 
+  done < $1
+}
+  
+case $1 in
+  init)
+    for file in `ls /etc/kproxy.d/*.$SUFIX`; do
+      add_host_by_file $file
+    done
+  ;;
+
+  install)
+    shift
+    until [ $# -eq 0 ]; do
+      add_host_by_file /etc/kproxy.d/$1.$SUFIX
+      shift
+    done
+  ;;
+
+  uninstall)
+    shift
+    until [ $# -eq 0 ]; do
+      del_host_by_file /etc/kproxy.d/$1.$SUFIX
+      shift
+    done
+  ;;
+
+  *)
+    echo "Usage: kproxy-conf [install|uninstall] <app-name>"
+  ;;
+esac
+

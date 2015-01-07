@@ -1,0 +1,82 @@
+<%
+local util  = require "luci.util"
+local http = require "luci.http"
+local n = require "luci.controller.api.network"
+local check_backup = "0"
+local check_backup_file = http.formvalue("check_backup_file")
+if check_backup_file == "1" then
+    local api_system = require "luci.controller.api.system"
+    local lastbackupfile = api_system.find_lastbackupfile()
+    if lastbackupfile then
+       check_backup = "1"
+    end
+end
+
+local autowantypeResp
+local uciwantypeResp
+local is_eth_linkResp
+
+if n.is_bridge() then
+    local net = require "hiwifi.net"
+    autowantypeResp = 4
+    uciwantypeResp = "wisp"
+    is_eth_linkResp = net.get_wifi_bridge_connect();
+    is_eth_linkResp = is_eth_linkResp or 0;
+else
+    autowantypeResp = util.get_auto_wan_type_code()
+    local interface = "wan"
+    local resultResp = util.get_lan_wan_info(interface)
+    if resultResp ~= false then
+      uciwantypeResp = util.get_wan_contact_info()
+    end
+    -- Wan 口是否连通
+    is_eth_linkResp = util.is_eth_link() or 0;
+end
+
+local guide_net = util.exec("cat /tmp/guide_net 2>/dev/null")
+
+local to_url = '';
+if check_backup == "1" then
+    to_url = luci.dispatcher.build_url("admin_web", "guide", "restore_newconf")
+elseif (guide_net == 1 or guide_net == "1") and (is_eth_linkResp == 1 or is_eth_linkResp == "1") then
+    to_url = luci.dispatcher.build_url("admin_web", "guide", "internet_success").."?guide_net="..guide_net.."&is_eth_link="..is_eth_linkResp
+else
+    if autowantypeResp == 1 then
+        to_url = luci.dispatcher.build_url("admin_web", "guide", "pppoe").."?autotype=pppoe"
+    elseif autowantypeResp == 2 then
+        to_url = luci.dispatcher.build_url("admin_web", "guide", "dhcp").."?autotype=dhcp"
+    elseif autowantypeResp == 3 then
+        --to_url = luci.dispatcher.build_url("admin_web", "guide", "static").."?autotype=static"
+        to_url = luci.dispatcher.build_url("admin_web", "guide", "pppoe").."?from=static"
+    elseif autowantypeResp == 4 then
+        if is_eth_linkResp == 1 or is_eth_linkResp == "1" then
+            to_url = luci.dispatcher.build_url("admin_web", "guide", "internet_success").."?guide_net="..guide_net.."&is_eth_link="..is_eth_linkResp
+        else
+            to_url = luci.dispatcher.build_url("admin_web", "guide", "wisp").."?autotype=wisp&guide_net="..guide_net
+        end
+    elseif autowantypeResp == 99 then
+        if is_eth_linkResp == 0 or is_eth_linkResp == "0" then
+            to_url = luci.dispatcher.build_url("admin_web", "guide", "unlink")
+        else
+            to_url = luci.dispatcher.build_url("admin_web", "guide", "dhcp")
+        end
+    elseif autowantypeResp == 100 then
+        to_url = luci.dispatcher.build_url("admin_web", "guide", "dhcp")
+    else
+        to_url = luci.dispatcher.build_url("admin_web", "guide", "pppoe")
+    end
+end
+%>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=0.5, maximum-scale=2.0, user-scalable=no" />
+</head>
+<body>
+</body>
+<script language="javascript" type="text/javascript">
+var to_url = '<%=to_url%>';
+window.location.href = to_url;
+</script>
+</html>

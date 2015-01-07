@@ -1,0 +1,3 @@
+/lib/functions/hwf_sqos_tc_actions.sh
+/lib/modules/3.3.8/hwf_smartqos.ko
+/etc/init.d/smartqos

@@ -1,0 +1,44 @@
+#!/bin/sh
+
+
+source /lib/functions/healib.sh
+source /lib/functions/kpanic.sh
+source /lib/functions/sysmonitor.sh
+source /lib/functions/processchk.sh
+
+HI_DAEMON_STATE="/var/state/hidaemon"
+
+#Conditions which trigger info-gather
+#1. There is kpanic.log in /var/log
+#2. There is *.core file in /tmp/coredump
+#3. Ether of dnsmasq nginx fcgi-cgi netifd die or didn't response.
+main()
+{
+	local run_state=""
+        
+	run_state="$(cat $HI_DAEMON_STATE 2> /dev/null )"
+	if [[ "$run_state" == "start" ]];then
+		[ $(pidof "hidaemon" | wc -w) -gt 2 ] && {
+			healib_log "hidameon dual boot."
+			return
+		}
+
+		gather_kpanic
+
+		while :
+		do
+			sleep 10
+
+			sysmonitor_main
+			
+			processchk_main
+
+			upload_kpanic
+		done
+	fi
+
+	#During shutdown, we want healthchk calm down.
+	sleep 5
+}
+
+main

@@ -1,0 +1,33 @@
+.sd-tip-bar {height: 50px;line-height: 50px;background:#f8c5a6;border:1px solid #da5020;border-top:none;position: absolute;top: 0;margin-top:-100px;width: 658px;margin-left:-20px;font-size: 16px;color: #d84613;left: 20px;
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+}
+.sd-tip-bar.yellow {background-color: #f2f199;border-color: #666666;color: #666;}
+.sd-tip-bar .icon-i-y {background: url(../images/i-y.png) no-repeat 0 0;width: 18px;height: 18px;vertical-align: middle;display: inline-block;margin-right:5px;}
+.sd-tip-bar .icon-i {background: url(../images/i.png) no-repeat 0 0;width: 19px;height: 19px;vertical-align: middle;display: inline-block;margin-right:5px;}
+.sd-tip-bar span {vertical-align: middle;}
+.sd-tip-bar a:hover {color: #36AAD6;}
+
+.sd-error-box {background:#f8c5a6;border:1px solid #da5020;border-left: none;border-right: none; color: #d84613;font-size: 16px;padding:15px 0;}
+.sd-error-box .sd-error-title {font-size: 30px;color: #d84613;line-height: 30px;margin:10px 0;}
+.sd-error-box .info {padding-left:60px;background: url(../images/i-big.png) no-repeat 0 0;width: 320px;margin: auto;}
+.sd-btn {text-align: center;color: #fff;font-size: 16px;width: 175px;height: 36px;line-height: 36px;vertical-align: middle;display: inline-block;margin-left:5px;}
+.sd-btn:hover {color: #fff;}
+.sd-btn-b {width: 227px;}
+.sd-btn-normal {background: #1086c8;}
+.sd-btn-success {background: #0c9b45;}
+.sd-btn-disabled {background: #d9d9d9;color: #999;cursor: default;}
+.sd-btn-disabled:hover {color: #999;}
+.sd-loading {background: url(../images/loading.gif) no-repeat 0 0;width: 16px;height: 16px;display: inline-block;vertical-align: middle;}
+.sd-form-box {width: 380px;margin: auto;}
+.sd-form-box .sd-label {font-size: 14px;color: #272727;padding:25px 0 15px 0;}
+.sd-form-box .sd-label span {color: #da5020;}
+.sd-form-box td {vertical-align: top;}
+.sd-form-box .info {color: #949494;font-size: 12px;padding:50px 0 40px 0;}
+.sd-form-box .warning {color: #da5020;padding:5px;}
+.sd-form-box .warning-success {color: #0c9b45;padding:5px;}
+.sd-input {height: 34px;vertical-align: middle;border:1px solid #c8c9c9;width: 180px;}
+.sd-btn-box {padding-top:30px;text-align: center;}
+.sd-error-tip {background:#f8c5a6;border-radius: 10px;height: 50px;line-height: 50px;font-size: 16px;color: #d84613;border:1px solid #da5020;width: 960px;margin: auto;}
+.sd-error-tip .icon-i {background: url(../images/i.png) no-repeat 0 0;width: 19px;height: 19px;vertical-align: middle;display: inline-block;margin-right:5px;}
+.sd-error-tip a:hover {color: #36AAD6;}

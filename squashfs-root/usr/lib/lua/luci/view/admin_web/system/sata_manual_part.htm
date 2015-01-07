@@ -1,0 +1,258 @@
+<%
+--[[
+    Info    格式化扩展存储
+    Author  Liu Chaogang  <chaogang.liu@hiwifi.tw>
+    Copyright   2014
+]]--
+    local util = require "luci.util"
+    local http = require "luci.http"
+    local ver  = require "luci.version"
+%><!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="x-ua-compatible" content="IE=9" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta http-equiv="pragma" content="no-cache">
+    <meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
+    <meta http-equiv="expires" content="Wed, 26 Feb 1997 08:21:57 GMT">
+    <title>路由器后台</title>
+    <script type="text/javascript" src="<%=resource%>/web/js/jquery-1.8.1.min.js?v=<%=ver.svnRevNum%>"></script>
+    <script type="text/javascript" src="<%=resource%>/web/js/jquery.cookie.min.js?v=<%=ver.svnRevNum%>"></script>
+    <script type="text/javascript" src="<%=resource%>/interface.js?v=<%=ver.svnRevNum%>"></script>
+    <!--[if lt IE 9]>
+    <script type="text/JavaScript" src="<%=resource%>/web/js/curvycorners.src.js?v=<%=ver.svnRevNum%>"></script>
+    <![endif]-->
+    <script type="text/javascript" src="<%=resource%>/web/js/util.js?v=<%=ver.svnRevNum%>"></script>
+    <script src="<%=resource%>/storage.js?v=<%=ver.svnRevNum%>"></script>
+    <link rel="stylesheet" href="<%=resource%>/web/css/style.css?v=<%=ver.svnRevNum%>" type="text/css"/>
+    <link rel="stylesheet" href="<%=resource%>/web/css/sd.css?v=<%=ver.svnRevNum%>" type="text/css"/>
+</head>
+<body>
+    <div style="background-color: #f5f4f4; with:100%; height:40px; margin-bottom: 30px; padding:15px 0 0 30px;">
+        <span style="">格式化扩展存储（SD卡或硬盘或U盘等）</span>
+    </div>
+    <div class="sd-error-box">
+        <div class="info">
+            <p class="sd-error-title">备份并格式化扩展存储</p>
+            <p>请备份个人文件后再格式化。</p>
+            <p><a href="#" id="check_sd_state">重新检测 > </a> </p>
+        </div>
+    </div>
+<div class="sd-form-box">
+    <div class="sd-label">如您坚持格式化请在下方输入“<span>我同意</span>”后再格式化</div>
+    <div class="sd-input-box">
+        <table>
+            <tr>
+                <td><input id="agree_fdisk" type="text" class="sd-input" placeholder="请输入“我同意”"/></td>
+                <td>
+                    <a href="#" id="sd_fdisk_btn" class=""></a>
+                    <p id="sd_fdisk_msg" class=""></p>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <p class="info">
+        * 需要1G空间作为系统分区<br/>
+        * 建议将扩展存储格式化为EXT格式。EXT格式更稳定可靠、更快、<br/>
+        &nbsp;&nbsp;支持容量更高、损坏率更低。
+    </p>
+</div>
+</body>
+<script type="text/javascript">
+$(function(){
+    $("#check_sd_state").click(function(){
+        get_storage_state('userclick');
+    })
+
+    get_storage_state();
+})
+
+var laststate = null;
+var sd_error = false;
+var laststatetime = 0;
+
+function now(){
+    var myDate = new Date();
+    return myDate.getTime();
+}
+function get_storage_state(type){
+    var mill = now();
+    $('#sd_fdisk_btn').unbind("click");
+    var request_data = {};
+    if(type=='userclick'){
+        $("#sd_fdisk_btn").removeClass("sd-btn sd-btn-normal sd-btn-success sd-btn-disabled");
+        $("#sd_fdisk_btn").html('检测中...');
+        $("#sd_fdisk_btn").addClass("sd-btn sd-btn-disabled");
+        $("#sd_fdisk_msg").removeClass("warning-success warning");
+        $("#sd_fdisk_msg").addClass("warning");
+        $("#sd_fdisk_msg").html("正在检测，请稍候...");
+        laststate = null;
+        sd_error = false;
+        laststatetime = 0;
+    }
+    $.getJSON('<%=luci.dispatcher.build_url("api", "storage", "state")%>?'+mill,request_data,function(rsp) 
+    {
+        var msg = rsp.msg;
+        var code = rsp.code;
+        var state = rsp.state;
+        var sdsize = rsp.size;
+        var minsize = rsp.minsize;
+        var type = "";
+        if(rsp.data){
+            type = rsp.data.type;
+        }
+        if(state != laststate){
+            sd_error = false;
+            laststatetime = now();
+        }
+        laststate = state;
+        if(code == 0 || code == "0"){
+            if(type != 'NULL'){
+                if(state == "removed"){
+                    $("#sd_fdisk_btn").html('去重启(右下角)');
+                    $("#sd_fdisk_btn").removeClass("sd-btn sd-btn-normal sd-btn-success sd-btn-disabled");
+                    $("#sd_fdisk_btn").addClass("sd-btn sd-btn-disabled");
+                    $("#sd_fdisk_msg").removeClass("warning-success warning");
+                    $("#sd_fdisk_msg").addClass("warning");
+                    $("#sd_fdisk_msg").html("未检测到扩展存储，如确认已插卡，请重启路由器");
+    				$('#sd_fdisk_btn').click(function(){
+    					$('#sd_fdisk_btn').unbind("click");
+    					try{
+    						window.parent.art.dialog.list['func_box'].close();  
+    					}catch(e){
+    					}
+    				});
+                    setTimeout("get_storage_state()", 3000);
+                }else if(state == "not-formated" || state == "mount-failed"){
+                    if(storage.compare_size(sdsize, minsize) < 0){
+                        $("#sd_fdisk_btn").removeClass("sd-btn sd-btn-normal sd-btn-success sd-btn-disabled");
+                        $("#sd_fdisk_btn").html("扩展存储太小");
+                        $("#sd_fdisk_btn").addClass("sd-btn sd-btn-disabled");
+                        $("#sd_fdisk_msg").removeClass("warning-success warning");
+                        $("#sd_fdisk_msg").addClass("warning");
+                        $("#sd_fdisk_msg").html("最低要求"+storage.conversion(minsize, 'G')+"，当前"+storage.conversion(sdsize, 'G'));
+                    }else{
+                        $("#sd_fdisk_btn").removeClass("sd-btn sd-btn-normal sd-btn-success sd-btn-disabled");
+                        $("#sd_fdisk_btn").html("格式化");
+                        $("#sd_fdisk_msg").html("");
+                        $("#sd_fdisk_btn").addClass("sd-btn sd-btn-normal");
+                        $('#sd_fdisk_btn').click(function(){
+                            if($('#agree_fdisk').val() != '我同意'){
+                                alert('请输入"我同意"');
+                                return;
+                            }
+                            $('#sd_fdisk_btn').unbind("click");
+                            $("#sd_fdisk_btn").html("<em class='sd-loading'></em>正在格式化");
+                            $("#sd_fdisk_btn").removeClass("sd-btn sd-btn-normal sd-btn-success sd-btn-disabled");
+                            $("#sd_fdisk_btn").addClass("sd-btn sd-btn-disabled");
+                            $("#sd_fdisk_msg").removeClass("warning-success warning");
+                            $("#sd_fdisk_msg").addClass("warning");
+                            $("#sd_fdisk_msg").html("请勿断电或拔出扩展存储！");
+                            format();
+                        });
+                    }
+                }else if(state == "inserted" || state == "umounted"){
+                    if(type == 'formating'){
+                        if(laststate == "inserted"){
+                            $("#sd_fdisk_btn").removeClass("sd-btn sd-btn-normal sd-btn-success sd-btn-disabled");
+                            $("#sd_fdisk_btn").html('去重启(右下角)');
+                            $("#sd_fdisk_btn").addClass("sd-btn sd-btn-disabled");
+                            $("#sd_fdisk_msg").removeClass("warning-success warning");
+                            $("#sd_fdisk_msg").addClass("warning");
+                            $("#sd_fdisk_msg").html("扩展存储有异常，请重启路由器");
+                            sd_error = true;
+                        }
+                    
+                        if(laststate == "umounted"){
+                            $("#sd_fdisk_btn").removeClass("sd-btn sd-btn-normal sd-btn-success sd-btn-disabled");
+                            $("#sd_fdisk_btn").html('未挂载');
+                            $("#sd_fdisk_btn").addClass("sd-btn sd-btn-disabled");
+                            $("#sd_fdisk_msg").removeClass("warning-success warning");
+                            $("#sd_fdisk_msg").addClass("warning");
+                            $("#sd_fdisk_msg").html("请拔掉扩展存储再插上");
+                            sd_error = true;
+                        }
+                    }else{
+                        setTimeout("get_storage_state()", 3000);
+                        
+                        setTimeout(function(){
+                            if(laststate == "inserted" && laststatetime - 1 + 11 < now()){
+                                $("#sd_fdisk_btn").removeClass("sd-btn sd-btn-normal sd-btn-success sd-btn-disabled");
+                                $("#sd_fdisk_btn").html('去重启(右下角)');
+                                $("#sd_fdisk_btn").addClass("sd-btn sd-btn-disabled");
+                                $("#sd_fdisk_msg").removeClass("warning-success warning");
+                                $("#sd_fdisk_msg").addClass("warning");
+                                $("#sd_fdisk_msg").html("扩展存储有异常，请重启路由器");
+                                sd_error = true;
+                            }
+                        }, 10000);
+                        
+                        setTimeout(function(){
+                            if(laststate == "umounted" && laststatetime - 1 + 11 < now()){
+                                $("#sd_fdisk_btn").removeClass("sd-btn sd-btn-normal sd-btn-success sd-btn-disabled");
+                                $("#sd_fdisk_btn").html('未挂载');
+                                $("#sd_fdisk_btn").addClass("sd-btn sd-btn-disabled");
+                                $("#sd_fdisk_msg").removeClass("warning-success warning");
+                                $("#sd_fdisk_msg").addClass("warning");
+                                $("#sd_fdisk_msg").html("请拔掉扩展存储再插上");
+                                sd_error = true;
+                            }
+                        }, 10000);
+                    }
+                }else if(state == "mounted"){
+                    $("#sd_fdisk_btn").removeClass("sd-btn sd-btn-normal sd-btn-success sd-btn-disabled");
+                    $("#sd_fdisk_btn").html('关闭');
+                    $("#sd_fdisk_btn").addClass("sd-btn sd-btn-success");
+                    $("#sd_fdisk_msg").html("已成功格式化！");
+                    $('#sd_fdisk_btn').click(function(){
+                        $('#sd_fdisk_btn').unbind("click");
+                        try{
+                            window.parent.art.dialog.list['func_box'].close();  
+                        }catch(e){
+                        }
+                    });
+                }else if(state == "auto-formated"){
+                    setTimeout("get_storage_state()", 3000);
+                    
+                    setTimeout(function(){
+                        if(laststate == "auto-formated" && laststatetime - 1 + 11 < now()){
+                            $("#sd_fdisk_btn").removeClass("sd-btn sd-btn-normal sd-btn-success sd-btn-disabled");
+                            $("#sd_fdisk_btn").html('去重启(右下角)');
+                            $("#sd_fdisk_btn").addClass("sd-btn sd-btn-disabled");
+                            $("#sd_fdisk_msg").removeClass("warning-success warning");
+                            $("#sd_fdisk_msg").addClass("warning");
+                            $("#sd_fdisk_msg").html("扩展存储有异常，请重启路由器");
+                            sd_error = true;
+                        }
+                    }, 120000);
+                }
+            }
+        }
+    })
+    .fail(function(rsp){
+        setTimeout("get_storage_state()", 5000);
+    });
+    
+}
+
+function format(){
+   var request_data = {'key':'i_agree_fdisk'};
+   $.post('<%=luci.dispatcher.build_url("api", "storage", "format")%>', request_data, function(rsp){
+        var msg = rsp.msg;
+        var code = rsp.code;
+        if(code == 0 || code == "0"){
+            setTimeout("get_storage_state('formating')", 60000);
+        }else{
+            alert(msg);
+            get_storage_state();
+        }
+   }, "json")
+   .error(function() {
+        alert("操作失败"); 
+        get_storage_state();
+   });
+}
+
+</script>
+</html>

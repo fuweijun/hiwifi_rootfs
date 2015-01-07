@@ -1,0 +1,13 @@
+Package: libtw
+Version: 0.0.63-20140616
+Depends: libc, libuci, libbdinfo
+Provides: 
+Source: /home/build/hiwifi/branch/release0.9005/HC5661/package/libtw
+Section: libs
+Status: unknown ok not-installed
+Essential: no
+Priority: optional
+Maintainer: Li Kai <9@kai.li>
+Architecture: ralink
+Installed-Size: 5085
+Description:  libtw description

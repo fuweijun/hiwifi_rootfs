@@ -1,0 +1,98 @@
+<%
+local ver  = require "luci.version"
+%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title><%=luci.i18n.translate("key_company")%>｜首次安装</title>
+<link rel="stylesheet" href="<%=resource%>/guide/css/style.css?v=<%=ver.svnRevNum%>" type="text/css"/>
+<script src="<%=resource%>/guide/js/jquery-1.8.2.min.js?v=<%=ver.svnRevNum%>"></script>
+<script src="<%=resource%>/guide/js/custom_checkbox_and_radio.js?v=<%=ver.svnRevNum%>"></script>
+<script src="<%=resource%>/guide/js/jquery.dropkick-1.0.0.js?v=<%=ver.svnRevNum%>"></script>
+<script src="<%=resource%>/guide/js/twx_guide.js?v=<%=ver.svnRevNum%>"></script>
+</head>
+<body id="home">
+	<div id="page">
+		<div id="header">
+			<h1><span id="logo"><%=luci.i18n.translate("key_company")%>｜首次安装</span></h1>
+		</div><!-- /header -->
+		<div id="content">
+		    <div class="backup-box">
+            <div class="backup-info">
+                <h3>检测到系统备份</h3>
+                <div id="backup_info_div" class="info">&nbsp;</div>
+            </div>
+            </div>
+            <div class="btn-bar">
+			    <a id="restore_btn" href="javascript:void(0);" class="btn radius back">还原备份</a>
+			    <a id="start_install" href="javascript:void(0);" class="btn radius reset">重新安装</a>
+    		    <p id="msg"></p>
+            </div>
+		</div><!-- /content -->
+		<div id="footer">
+		</div><!-- /footer -->
+	</div><!-- /page -->
+</body>
+<script type="text/javascript">
+$(function(){
+    var internet_check_page_html = '';
+    update_backup_info();
+    cache_internet_check_html();
+
+    $("#start_install").click(function(){
+        if(has_internet_check_page_html()){
+            $("html").html(internet_check_page_html);
+        }else{
+            window.location = "<%=luci.dispatcher.build_url("admin_web", "guide", "internet_check")%>";
+        }
+    });
+
+    $("#restore_btn").click(function(){
+        $("#msg").html("还原中，请稍候...");
+        $.post("<%=luci.dispatcher.build_url('api','system', 'restore_user_conf_1')%>", {},
+            function(data){
+             if(data.code == "0"){
+                $("#msg").html("还原成功");
+                to_restore_complete();
+             }else{
+                $("#msg").html(data.msg);
+             }
+            }
+         ,"json");
+    });
+    
+    function update_backup_info(){
+        $.getJSON("<%=luci.dispatcher.build_url('api','system', 'backup_info_1')%>", {},
+            function(data){
+             if(data.code == "0"){
+                if(data.backup == "1"){
+                    $("#backup_info_div").html('上次备份：' + data.mtime);
+                }
+             }
+            }
+         );
+    }
+
+    function cache_internet_check_html(){
+        $.post("<%=luci.dispatcher.build_url("admin_web", "guide", "internet_check")%>", {},
+            function(rsp){
+             internet_check_page_html = rsp;
+            }
+         );
+    }
+
+    function has_internet_check_page_html(){
+        return internet_check_page_html &&
+            internet_check_page_html != '' &&
+            internet_check_page_html.indexOf("</html>") > -1;
+    }
+    
+    function to_restore_complete(){
+        window.location.href = "<%=luci.dispatcher.build_url("admin_web", "guide","restore_complete")%>";
+    }
+    
+})
+</script>
+</html>

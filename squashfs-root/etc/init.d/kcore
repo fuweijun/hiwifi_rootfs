@@ -1,0 +1,47 @@
+#!/bin/sh /etc/rc.common
+# Copyright (C) 2013 hiwifi.tw
+
+START=40
+STOP=60
+
+LOG_FILE=/tmp/log/hi_sys_info.log
+KPANIC_LOG_FILE=/tmp/log/kpanic.log
+LOG_TMP_FILE=/tmp/log/.kpanic.log
+
+find_panic_mtd_part() {
+	local PART="$(grep "\"$1\"" /proc/mtd | awk -F: '{print $1}')"
+	local PREFIX=/dev/mtdblock
+
+	PART="${PART##mtd}"
+	[ -d /dev/mtdblock ] && PREFIX=/dev/mtdblock/
+	echo "${PART:+$PREFIX$PART}"
+}
+
+start()
+{
+	local mtdpart=""
+ 
+	mtdpart="$(find_panic_mtd_part hw_panic)"
+	[ -z "$mtdpart" ] && return 1 
+	panic_dev=$mtdpart
+	
+	dd if=$panic_dev of=$LOG_TMP_FILE
+	grep -v "^$" $LOG_TMP_FILE >$LOG_FILE
+	cat $LOG_FILE | grep -qs "Panic Log"
+	if [ $? -eq 0 ]; then
+		cp $LOG_FILE $KPANIC_LOG_FILE
+	fi
+
+	rm -f $LOG_TMP_FILE
+	rm -f $LOG_FILE
+
+	mtd -q erase hw_panic
+
+	insmod hwf_core
+}
+
+stop()
+{
+	rmmod hwf_core
+}
+

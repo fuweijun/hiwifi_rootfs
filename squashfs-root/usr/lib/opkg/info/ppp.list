@@ -1,0 +1,13 @@
+/lib/upgrade/keep.d/ppp
+/usr/sbin/pppd
+/etc/ppp/filter
+/lib/netifd/ppp-up
+/usr/sbin/pppd-manage.sh
+/etc/ppp/options
+/etc/logrotate.d/ppp
+/etc/ppp/chap-secrets
+/etc/ppp/account/gddx-default
+/lib/netifd/ppp-down
+/lib/netifd/proto/ppp.sh
+/etc/ppp/resolv.conf
+/etc/ppp/state_manage.sh

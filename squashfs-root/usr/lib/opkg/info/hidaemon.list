@@ -1,0 +1,11 @@
+/lib/functions/sysmonitor.sh
+/lib/functions/infogather.sh
+/lib/functions/prochk.sh
+/sbin/hidaemon
+/etc/init.d/hidaemon
+/lib/functions/healib.sh
+/lib/functions/diagnose.sh
+/lib/functions/upload.sh
+/lib/functions/processchk.sh
+/lib/functions/kpanic.sh
+/lib/functions/packtgz.sh

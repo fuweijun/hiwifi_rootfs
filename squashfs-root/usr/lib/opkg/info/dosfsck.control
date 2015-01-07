@@ -1,0 +1,14 @@
+Package: dosfsck
+Version: 3.0.12-1
+Depends: libc
+Provides: 
+Source: /home/build/hiwifi/branch/release0.9005/HC5661/feeds/dosfstools
+Section: utils
+Status: unknown ok not-installed
+Essential: no
+Priority: optional
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Architecture: ralink
+Installed-Size: 21906
+Description:  Utilities to create and check MS-DOS FAT filesystems.
+ (fsck.vfat and fsck.msdos for checking integrity of FAT volumes)

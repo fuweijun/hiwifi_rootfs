@@ -1,0 +1,13 @@
+Package: twx
+Version: 2130-20140821
+Depends: libc, nixio, lua, luasec, lsqlite3, libtw-lua, libhiwifi-lua, libauth
+Provides: 
+Source: /home/build/hiwifi/branch/release0.9005/HC5661/package/twx
+Section: net
+Status: unknown ok not-installed
+Essential: no
+Priority: optional
+Maintainer: Turbo Wireless Developers Team <wong@turboer.com>
+Architecture: ralink
+Installed-Size: 2110991
+Description:  Turbo Wireless X

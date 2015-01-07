@@ -1,0 +1,13 @@
+Package: dnsmasq
+Version: 2.70-20140821.1
+Depends: libc
+Provides: 
+Source: package/network/services/dnsmasq
+Section: net
+Status: unknown ok not-installed
+Essential: no
+Priority: optional
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Architecture: ralink
+Installed-Size: 103129
+Description:  It is intended to provide coupled DNS and DHCP service to a LAN.

@@ -1,0 +1,13 @@
+Package: libuci-lua
+Version: 20140411.1-20140530
+Depends: libc, libuci, liblua
+Provides: 
+Source: package/uci
+Section: libs
+Status: unknown ok not-installed
+Essential: no
+Priority: optional
+Maintainer: Felix Fietkau <nbd@openwrt.org>
+Architecture: ralink
+Installed-Size: 6173
+Description:  Lua plugin for UCI

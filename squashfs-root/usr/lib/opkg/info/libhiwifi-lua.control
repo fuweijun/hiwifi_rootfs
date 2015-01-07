@@ -1,0 +1,13 @@
+Package: libhiwifi-lua
+Version: 0.77-20140821
+Depends: libc, nixio, luasec, libtw-lua, liblua
+Provides: 
+Source: /home/build/hiwifi/branch/release0.9005/HC5661/package/libhiwifi-lua
+Section: net
+Status: unknown ok not-installed
+Essential: no
+Priority: optional
+Maintainer: Hong Shen <sh@ikwcn.com>
+Architecture: ralink
+Installed-Size: 19565
+Description:  Common Library for Lua

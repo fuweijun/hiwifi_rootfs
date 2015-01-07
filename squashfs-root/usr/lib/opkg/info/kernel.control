@@ -1,0 +1,13 @@
+Package: kernel
+Version: 3.3.8-1-df6733bf463f191ba6db1c3afea602fb
+Depends: libc
+Provides: 
+Source: package/kernel/linux
+Section: sys
+Status: unknown hold not-installed
+Essential: no
+Priority: optional
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Architecture: ralink
+Installed-Size: 104
+Description:  Virtual kernel package

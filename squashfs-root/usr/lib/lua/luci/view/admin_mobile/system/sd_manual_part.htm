@@ -1,0 +1,217 @@
+<%
+local ver  = require "luci.version"
+local util  = require "luci.util"
+local http = require "luci.http"
+math.randomseed(os.time())
+local random = math.random()
+%>
+<%+header%>
+    <div class="sd-box">
+        <div class="sd-box-warn">
+            <span class="sd-icon-wran"></span>
+            <div class="sd-box-p">
+                <h6 class="sd-title orange-color">备份并格式化SD卡</h6>
+                <p class="sd-box-info orange-color">请您拔出SD卡并备份个人文件后再格式化。</p>
+                <a id="check_sd_state" href="#" class="sd-check-again">重新检测SD卡</a>
+            </div>
+        </div>
+        <p class="sd-input-tip">如您坚持格式化请在下方输入<br>“<span>我同意</span>”之后再格式化SD卡</p>
+        <input id="agree_fdisk" class="sd-input" type="text" placeholder="请输入“我同意”" />
+        <a id="sd_fdisk_btn" href="#" class="sd-btn"></a>
+        <p id="sd_fdisk_msg" class="sd-btn-info fail"></p>
+        <p class="sd-remind">* 需要1G空间作为系统分区<br/>* 建议将SD卡格式化为EXT格式</p>
+    </div>
+<script type="text/javascript">
+$(function(){
+    $("#check_sd_state").click(function(){
+        get_sd_state('userclick');
+    })
+
+    get_sd_state();
+})
+
+var laststate = null;
+var sd_error = false;
+var laststatetime = 0;
+
+function now(){
+    var myDate = new Date();
+    return myDate.getTime();
+}
+
+function add(a, b){
+    return parseInt(a) + parseInt(b);
+}
+
+function smaller(a, b){
+    return parseInt(a) < parseInt(b);
+}
+
+function get_sd_state(type){
+    var mill = now();
+    $('#sd_fdisk_btn').unbind("click");
+    if(type=='userclick'){
+        clear_sd_fdisk_class("#sd_fdisk_btn");
+        $("#sd_fdisk_btn").html("检测中...");
+        $("#sd_fdisk_btn").addClass("sd-btn");
+        $("#sd_fdisk_msg").addClass("sd-btn-info fail");
+        $("#sd_fdisk_msg").html("正在检测，请稍候...");
+        $("#sd_fdisk_btn").attr("href", "#");
+        laststate = null;
+        sd_error = false;
+        laststatetime = 0;
+    }
+    var request_data = {};
+    $.getJSON('<%=luci.dispatcher.build_url("api", "system", "sd_state")%>?'+mill,request_data,function(rsp) 
+    {
+        var msg = rsp.msg;
+        var code = rsp.code;
+        var state = rsp.state;
+        var sdsize = rsp.sdsize;
+        var minsize = rsp.minsize;
+        if(state != laststate){
+            sd_error = false;
+            laststatetime = now();
+        }
+        laststate = state;
+        if(code == 0 || code == "0"){
+            if(state == "removed"){
+                clear_sd_fdisk_class("#sd_fdisk_btn");
+				$("#sd_fdisk_btn").html("去首页重启(底部)");
+                $("#sd_fdisk_btn").addClass("sd-btn");
+                $("#sd_fdisk_msg").addClass("sd-btn-info fail");
+                $("#sd_fdisk_msg").html("未检测到SD卡，如确认已插卡，请重启路由器");
+				$('#sd_fdisk_btn').unbind("click");
+                $("#sd_fdisk_btn").attr("href", "<%=luci.dispatcher.build_url("admin_mobile")%>?<%=random%>");
+                setTimeout("get_sd_state()", 3000);
+            }else if(state == "not-formated"){
+                if(sdsize < minsize){
+                    clear_sd_fdisk_class("#sd_fdisk_btn");
+                    $('#sd_fdisk_btn').unbind("click");
+                    $("#sd_fdisk_btn").addClass("sd-btn formatting");
+                    $("#sd_fdisk_btn").html("SD卡太小，最低要求"+minsize+"M，当前"+sdsize+"M");
+                    $("#sd_fdisk_msg").addClass("sd-btn-info fail");
+                }else{
+                    clear_sd_fdisk_class("#sd_fdisk_btn");
+                    $("#sd_fdisk_btn").html("格式化");
+                    $("#sd_fdisk_btn").addClass("sd-btn");
+                    $("#sd_fdisk_msg").addClass("sd-btn-info");
+                    $('#sd_fdisk_btn').unbind("click");
+                    $('#sd_fdisk_btn').click(function(){
+                        try{
+                            $('#agree_fdisk').val($('#agree_fdisk').val().trim());
+                        }catch(e){
+                        }
+                        if($('#agree_fdisk').val() != '我同意'){
+                            $("#sd_fdisk_msg").html('请输入"我同意"');
+                            return;
+                        }
+                        $('#sd_fdisk_btn').unbind("click");
+                        clear_sd_fdisk_class("#sd_fdisk_btn");
+                        $("#sd_fdisk_btn").html("<span class=\"sd-icon-formatting\"></span>正在格式化");
+                        $("#sd_fdisk_btn").addClass("sd-btn formatting");
+                        $("#sd_fdisk_msg").addClass("sd-btn-info fail");
+                        $("#sd_fdisk_msg").html("请勿断电或拔出SD卡!");
+                        sd_manual_part();
+                    });
+                }
+            }else if(state == "inserted" || state == "umounted"){
+                if(type == 'formating'){
+                    console.log('formating timeout');
+                    if(laststate == "inserted"){
+                        console.log('inserted timeout');
+                        clear_sd_fdisk_class("#sd_fdisk_btn");
+                        $("#sd_fdisk_btn").html("去首页重启(底部)");
+                        $("#sd_fdisk_btn").addClass("sd-btn");
+                        $("#sd_fdisk_msg").html("SD卡有异常，请重启路由器");
+                        $("#sd_fdisk_msg").addClass("sd-btn-info fail");
+                        $('#sd_fdisk_btn').unbind("click");
+                        $("#sd_fdisk_btn").attr("href", "<%=luci.dispatcher.build_url("admin_mobile")%>?<%=random%>");
+                        sd_error = true;
+                    }
+                
+                    if(laststate == "umounted"){
+                        console.log('umounted timeout');
+                        clear_sd_fdisk_class("#sd_fdisk_btn");
+                        $("#sd_fdisk_btn").html("未挂载");
+                        $("#sd_fdisk_btn").addClass("sd-btn");
+                        $("#sd_fdisk_msg").html("请拔掉SD卡再插上");
+                        $("#sd_fdisk_msg").addClass("sd-btn-info fail");
+                        $('#sd_fdisk_btn').unbind("click");
+                        $("#sd_fdisk_btn").attr("href", "#");
+                        sd_error = true;
+                    }
+                }else{
+                    setTimeout("get_sd_state()", 3000);
+                    
+                    setTimeout(function(){
+                        if(laststate == "inserted" && smaller(add(laststatetime, 10), now())){
+                            clear_sd_fdisk_class("#sd_fdisk_btn");
+                            $("#sd_fdisk_btn").html("去首页重启(底部)");
+                            $("#sd_fdisk_btn").addClass("sd-btn");
+                            $("#sd_fdisk_msg").html("SD卡有异常，请重启路由器");
+                            $("#sd_fdisk_msg").addClass("sd-btn-info fail");
+                            $('#sd_fdisk_btn').unbind("click");
+                            $("#sd_fdisk_btn").attr("href", "<%=luci.dispatcher.build_url("admin_mobile")%>?<%=random%>");
+                            sd_error = true;
+                        }
+                    }, 10000);
+                    
+                    setTimeout(function(){
+                        if(laststate == "umounted" && smaller(add(laststatetime, 10), now())){
+                            clear_sd_fdisk_class("#sd_fdisk_btn");
+                            $("#sd_fdisk_btn").html("未挂载");
+                            $("#sd_fdisk_btn").addClass("sd-btn");
+                            $("#sd_fdisk_msg").html("请拔掉SD卡再插上");
+                            $("#sd_fdisk_msg").addClass("sd-btn-info fail");
+                            $('#sd_fdisk_btn').unbind("click");
+                            $("#sd_fdisk_btn").attr("href", "#");
+                            sd_error = true;
+                        }
+                    }, 10000);
+                }
+            }else if(state == "mounted"){
+                clear_sd_fdisk_class("#sd_fdisk_btn");
+                $("#sd_fdisk_btn").html("返回首页");
+                $("#sd_fdisk_btn").addClass("sd-btn green");
+                $("#sd_fdisk_msg").addClass("sd-btn-info success");
+                $("#sd_fdisk_msg").html("已成功格式化");
+                $('#sd_fdisk_btn').unbind("click");
+                $("#sd_fdisk_btn").attr("href", "<%=luci.dispatcher.build_url("admin_mobile")%>?<%=random%>");
+            }
+        }
+    })
+    .fail(function(rsp){
+        setTimeout("get_sd_state()", 5000);
+    });
+    
+}
+
+function clear_sd_fdisk_class(id){
+    $("#sd_fdisk_btn").html("");
+    $("#sd_fdisk_btn").removeClass("sd-btn formatting green");
+    $("#sd_fdisk_btn").attr("href", "#");
+    $("#sd_fdisk_msg").removeClass("sd-btn-info fail success");
+    $("#sd_fdisk_msg").html("");
+}
+
+function sd_manual_part(){
+   var request_data = {'key':'i_agree_fdisk'};
+   $.post('<%=luci.dispatcher.build_url("api", "system", "sd_manual_part")%>', request_data, function(rsp){
+        var msg = rsp.msg;
+        var code = rsp.code;
+        if(code == 0 || code == "0"){
+            setTimeout("get_sd_state('formating')", 20000);
+        }else{
+            alert(msg);
+            get_sd_state();
+        }
+   }, "json")
+   .error(function() {
+        console.log('sd_manual_part error');
+        alert("操作失败"); 
+        get_sd_state();
+   });
+}
+</script>
+<%+footer%>

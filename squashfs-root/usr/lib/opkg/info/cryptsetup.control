@@ -1,0 +1,13 @@
+Package: cryptsetup
+Version: 1.4.1-1
+Depends: libc, libblkid, libuuid, libpopt, lvm2, libgcrypt, libdevmapper
+Provides: 
+Source: /home/build/hiwifi/branch/release0.9005/HC5661/feeds/cryptsetup
+Section: utils
+Status: unknown ok not-installed
+Essential: no
+Priority: optional
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Architecture: ralink
+Installed-Size: 56298
+Description:  Cryptsetup-luks

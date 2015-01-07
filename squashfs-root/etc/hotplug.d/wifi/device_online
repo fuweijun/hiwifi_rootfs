@@ -1,0 +1,10 @@
+#!/bin/sh
+
+action="$ACTION" 
+vap="$VAP"
+mac="$MACADDR"
+rssi="$RSSI"
+
+if [ $action == 'assoc' ]; then
+    lua /etc/app/wifi_event.lua "$action" "$vap" "$mac" "$rssi"
+fi

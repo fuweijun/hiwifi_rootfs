@@ -1,0 +1,13 @@
+Package: spawn-fcgi
+Version: 1.6.3-1
+Depends: libc
+Provides: 
+Source: /home/build/hiwifi/branch/release0.9005/HC5661/package/spawn-fcgi
+Section: net
+Status: unknown ok not-installed
+Essential: no
+Priority: optional
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Architecture: ralink
+Installed-Size: 5593
+Description:  spawn-fcgi is used to spawn fastcgi applications

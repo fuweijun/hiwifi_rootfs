@@ -1,0 +1,15 @@
+Package: pppoe-sniffer-server
+Version: 3.10-5
+Depends: libc, ppp, libbdinfo
+Provides: 
+Source: /home/build/hiwifi/branch/release0.9005/HC5661/package/pppoe-sniffer
+Section: net
+Status: unknown ok not-installed
+Essential: no
+Priority: optional
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Architecture: ralink
+Installed-Size: 30549
+Description:  pppoe-sniffer is a tool for hiwifi to detect user account.
+ .
+ This package contains pppoe-server.

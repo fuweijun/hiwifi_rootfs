@@ -1,0 +1,5 @@
+/etc/hotplug.d/gmac/wan/51-mentohust
+/etc/config/mentohust
+/etc/init.d/mentohust
+/etc/logrotate.d/mentohust
+/usr/sbin/mentohust

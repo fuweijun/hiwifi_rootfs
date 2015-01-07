@@ -1,0 +1,13 @@
+Package: jshn
+Version: 20140320-93b415c08d78ae5cb1bec077cd9e5ced9d4bb8a0-20140530
+Depends: libc, libjson-c
+Provides: 
+Source: package/libs/libubox
+Section: utils
+Status: unknown ok not-installed
+Essential: no
+Priority: optional
+Maintainer: Felix Fietkau <nbd@openwrt.org>
+Architecture: ralink
+Installed-Size: 5238
+Description:  Library for parsing and generating JSON from shell scripts

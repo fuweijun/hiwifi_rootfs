@@ -1,0 +1,15 @@
+Package: luamd5
+Version: 1.1.2-1
+Depends: libc, liblua
+Provides: 
+Source: /home/build/hiwifi/branch/release0.9005/HC5661/feeds/luamd5
+Section: lang
+Status: unknown ok not-installed
+Essential: no
+Priority: optional
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Architecture: ralink
+Installed-Size: 8356
+Description:  MD5 offers basic cryptographic facilities for Lua 5.1: a hash (digest)
+ function, a pair crypt/decrypt based on MD5 and CFB, and a pair
+ crypt/decrypt based on DES with 56-bit keys.

@@ -1,0 +1,5 @@
+/etc/kproxy.d/default.hosts
+/usr/sbin/kproxy-conf
+/usr/lib/lua/kproxy.lua
+/usr/sbin/kproxy
+/etc/init.d/kproxy

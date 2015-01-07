@@ -1,0 +1,18 @@
+Package: kmod-ipt-extra
+Version: 3.3.8-1
+Depends: kmod-ipt-core
+Provides: 
+Source: package/kernel/linux
+Section: kernel
+Status: unknown hold not-installed
+Essential: no
+Priority: optional
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Architecture: ralink
+Installed-Size: 1842
+Description:  Other Netfilter (IPv4) kernel modules
+ Includes:
+ - owner
+ - physdev (if bridge support was enabled in kernel)
+ - pkttype
+ - quota

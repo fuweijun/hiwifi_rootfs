@@ -1,0 +1,14 @@
+#!/bin/sh /etc/rc.common
+# Copyright (C) 2006 OpenWrt.org
+
+START=43
+
+start()
+{
+	insmod xt_qqvoice
+}
+
+stop()
+{
+	rmmod ipt_salist
+}

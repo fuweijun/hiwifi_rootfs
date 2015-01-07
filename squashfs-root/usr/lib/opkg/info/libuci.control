@@ -1,0 +1,13 @@
+Package: libuci
+Version: 20140411.1-20140530
+Depends: libc, libubox
+Provides: 
+Source: package/uci
+Section: libs
+Status: unknown ok not-installed
+Essential: no
+Priority: optional
+Maintainer: Felix Fietkau <nbd@openwrt.org>
+Architecture: ralink
+Installed-Size: 16840
+Description:  C library for the Unified Configuration Interface (UCI)

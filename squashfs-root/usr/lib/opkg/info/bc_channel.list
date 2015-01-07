@@ -1,0 +1,6 @@
+/etc/init.d/bc_channel
+/usr/lib/bc_channel/bc_channel.sh
+/usr/lib/bc_channel/bc_channel
+/usr/lib/bc_channel/bc_check/bc_query.sh
+/lib/upgrade/keep.d/bc_channel
+/usr/lib/bc_channel/bc_check/bc_check.sh

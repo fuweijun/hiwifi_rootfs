@@ -1,0 +1,51 @@
+#!/bin/sh /etc/rc.common
+# Copyright (C) 2012-2013 HiWiFi Co., Ltd
+
+src=/var/log/syslog
+dst=/tmp/data/syslog
+
+reserve() {
+	local cnt
+	cnt=$(cat $1 2>/dev/null | wc -l)
+	cnt=$((cnt-$2))
+	if [ $cnt -gt 1 ];then
+		sed -i "1,${cnt}d" $1
+	fi
+}
+
+rotate() {
+	local i count
+	count=$(ls $dst.* | wc -w)
+	count=${count:-10}
+	while [ $count -gt 1 ]
+	do
+		let count-=1
+		let i=count-1
+		mv $dst.$i $dst.$count 2>/dev/null
+	done
+	reserve $dst 10000
+	mv $dst $dst.0
+}
+
+start() {
+	stop
+	if [ -L /tmp/data ];then
+		rotate
+		cp -f $src $dst
+		reserve $dst 10000
+		tail -f $src >> $dst 2>/dev/null &
+	fi
+}
+
+stop() {
+	local ret
+	ret=$(ps | grep "[t]ail -f $src")
+	if [ $? -eq 0 ];then
+		kill $(echo $ret | awk '{print $1}') 2>/dev/null
+	fi
+}
+
+restart() {
+	stop
+	start
+}

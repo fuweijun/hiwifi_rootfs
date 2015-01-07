@@ -1,0 +1,3 @@
+/usr/sbin/pdnsd
+/etc/init.d/pdnsd
+/etc/pdnsd.conf

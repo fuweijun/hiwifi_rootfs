@@ -1,0 +1,14 @@
+Package: libev
+Version: 4.11-1
+Depends: libc
+Provides: 
+Source: /home/build/hiwifi/branch/release0.9005/HC5661/package/libev
+Section: libs
+Status: unknown ok not-installed
+Essential: no
+Priority: optional
+Maintainer: Li Kai <9@kai.li>
+Architecture: ralink
+Installed-Size: 24657
+Description:  libev description
+ capture.

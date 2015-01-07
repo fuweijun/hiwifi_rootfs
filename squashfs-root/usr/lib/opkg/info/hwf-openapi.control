@@ -1,0 +1,13 @@
+Package: hwf-openapi
+Version: 0.0.2-20140725
+Depends: libc, lua-setuid, hwf-cert, luamd5
+Provides: 
+Source: /home/build/hiwifi/branch/release0.9005/HC5661/package/hwf-openapi
+Section: net
+Status: unknown ok not-installed
+Essential: no
+Priority: optional
+Maintainer: longfei.qiao
+Architecture: ralink
+Installed-Size: 49074
+Description:  hwf-openapi

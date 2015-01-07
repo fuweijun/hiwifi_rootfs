@@ -1,0 +1,162 @@
+<%
+local ver  = require "luci.version"
+local http = require "luci.http"
+
+local is_defult_password = luci.sys.user.checkpasswd("root", luci.version.default_password)
+%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title><%=luci.i18n.translate("key_company")%>｜首次安装－修改后台密码</title>
+<link rel="stylesheet" href="<%=resource%>/guide/css/style.css?v=<%=ver.svnRevNum%>" type="text/css"/>
+<script src="<%=resource%>/guide/js/jquery-1.8.2.min.js?v=<%=ver.svnRevNum%>"></script>
+<script src="<%=resource%>/guide/js/custom_checkbox_and_radio.js?v=<%=ver.svnRevNum%>"></script>
+<script src="<%=resource%>/web/js/util.js?v=<%=ver.svnRevNum%>"></script>
+<script src="<%=resource%>/guide/js/application.js?v=<%=ver.svnRevNum%>"></script>
+<script src="<%=resource%>/guide/js/twx_guide.js?v=<%=ver.svnRevNum%>"></script>
+</head>
+<body>
+	<div id="page">
+		<div id="header">
+			<h1><span id="logo"><%=luci.i18n.translate("key_company")%>｜首次安装</span></h1>
+		</div><!-- /header -->
+				
+		<div id="content">
+		    <h2 style="font-size: 1.3em;">简单两步，保障上网安全</h2>
+            <div class="pw-step2"></div>
+            <div class="pw-step1-info pw-step2-info">
+                <div class="tit">设置路由器管理后台密码</div>
+                <div class="text">用途：管理路由器后台</div>
+            </div>
+			<form id="form1" method="post">
+                 <table class="form-table">
+                    <%
+                    if is_defult_password then
+                    %>
+                    <tr style="display:none">
+                        <th>原密码：</th>
+                        <td>
+            				<input type="text" class="txt radius" name="old_password" value="<%=luci.version.default_password%>" />
+                        </td>
+                    </tr>
+                    <%
+                    else
+                    %>
+                    <tr>
+                        <th>原密码：</th>
+                        <td>
+                            <input type="text" class="txt radius" name="old_password" value="" />
+                        </td>
+                    </tr>
+                    <%
+                    end
+                    %>
+                    <tr>
+                        <th>后台密码：</th>
+                        <td>
+            				<input type="text" class="txt radius J_pw" maxLength="20" minLength="5" name="password" value="<%=luci.version.default_password%>" />
+                            <div class="tip-bar">至少5位，区分大小写</div>
+                            <div class="error" style="display: none">密码错误，请重新输入</div>
+                        </td>
+                    </tr>
+                 </table>
+				<p class="error"></p>
+				<a id="submit_btn" class="btn radius">保存设置</a>
+			</form>
+		</div><!-- /content -->
+
+		<div id="footer">
+		</div><!-- /footer -->
+	</div><!-- /page -->
+</body>
+
+<script type="text/javascript">
+var saving = false;
+var ssid_view = '<%=luci.dispatcher.build_url("admin_web", "guide","ssid")%>';
+var status_view = '<%=luci.dispatcher.build_url("admin_web", "guide","status")%>';
+var timeout = 35000;
+var sec;
+
+$(function(){
+    $("#submit_btn").click(function(){form_submit();});
+    listerenterkeydown(function(){
+        form_submit();
+    });
+});
+
+function complete(){
+    window.location = status_view;
+}
+
+function form_submit(){
+    $(".J_pw").trigger("blur");
+    if($(".input-error").size() > 0){
+        return;
+    }
+    $("input[name='password']").val($.trim($("input[name='password']").val()))
+    var password = $("input[name='password']").val();
+    if(HaveChineseStr(password)){
+        $(".error").html('密码只能使用英文符号及数字');
+        return;
+    }
+    if(saving == true){
+        return;
+    }
+    saving = true;
+    $("#submit_btn").html('正在保存中...');
+    $(".error").html('');
+        
+    //system/set_sys_password 
+    var request_date = $("#form1").serialize(); 
+    sec = Math.ceil(timeout/1000);
+    update_btn();
+    
+    $.ajax({
+          url: "<%=luci.dispatcher.build_url("api", "guide","cache_sys_pwd")%>",
+          dataType: 'json',
+          type: "POST",
+          data: request_date,
+          success: function(rsp,item){
+              if(rsp.code == 0){
+                complete();
+              } else {
+                $(".error").html(rsp.msg);
+                $("#submit_btn").html('保存密码');
+                saving = false;
+              }
+          },
+          error: function(x, t, m) {
+              $(".error").html('保存失败');
+              $("#submit_btn").html('保存密码');
+              saving = false;
+          }
+    }); 
+}
+
+function update_btn(){
+    if(saving == true){
+        if(sec > 0){
+            var mod = sec % 3;
+            if(mod == 0){
+                $("#submit").html("正在保存中...");
+            }else if(mod == 1){
+                $("#submit").html("正在保存中..");
+            }else if(mod == 2){
+                $("#submit").html("正在保存中.");
+            }else{
+                $("#submit").html("正在保存中...");
+            }
+            setTimeout("update_btn()", 1000);
+            sec = sec - 1;
+        }else{
+        	$("#submit").html("保存密码");
+    	}
+    }else{
+        $("#submit").html("保存密码");
+    }
+}
+
+</script>
+</html>
